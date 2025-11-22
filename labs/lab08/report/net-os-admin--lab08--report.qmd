@@ -1,0 +1,340 @@
+---
+## Author
+author:
+  name: Кхари Жекка Кализая Арсе  
+  email: 1032234412@pfur.ru 
+## Title
+title: "отчёт по лабораторной работе №8"
+subtitle: "Настройка SMTP-сервера"
+license: "CC BY"
+---
+
+# Цель работы
+
+Приобретение практических навыков по установке и конфигурированию SMTPсервера
+
+# Задание
+
+1. Установите на виртуальной машине server SMTP-сервер postfix (см. раздел 8.4.1).
+2. Сделайте первоначальную настройку postfix при помощи утилиты postconf, задав
+отправку писем не на локальный хост, а на сервер в домене (см. раздел 8.4.2).
+3. Проверьте отправку почты с сервера и клиента (см. раздел 8.4.3).
+4. Сконфигурируйте Postfix для работы в домене. Проверьте отправку почты с сервера
+и клиента (см. раздел 8.4.4).
+5. Напишите скрипт для Vagrant, фиксирующий действия по установке и настройке
+Postfix во внутреннем окружении виртуальной машины server. Соответствующим
+образом внесите изменения в Vagrantfile (см. раздел 8.4.5).
+
+
+# Выполнение лабораторной работы
+
+
+## Установка Postfix
+
+Сначала я устновил postfix и s-nail
+
+    dnf -y install postfix
+    dnf -y install s-nail
+
+![name](image/01.jpg){#fig-001 width=70%}
+
+Потом я сконфигурировал межсетевой экран, чтобы разрешить работу службы SMTP
+
+    firewall-cmd --add-service=smtp
+    firewall-cmd --add-service=smtp --permanent
+    firewall-cmd --list-services
+
+![name](image/02.jpg){#fig-002 width=70%}
+
+Дальше я восстановил контекст безопасности в SELinux
+
+    restorecon -vR /etc
+
+![name](image/03.jpg){#fig-003 width=70%}
+
+
+Дальше я запустил Postfix
+
+    systemctl enable postfix
+    systemctl start postfix
+
+
+![name](image/04.jpg){#fig-004 width=70%}
+
+
+
+## Изменение параметров Postfix с помощью postconf
+
+Дальше я изменил параметры posftix с помощью postconf
+
+    ponstconf myorigin
+    postconf mydomain
+    postconf mydomain
+    postconf -e 'myorigin = $mydomain'
+    postconf myorigin
+
+![name](image/05.jpg){#fig-005 width=70%}
+
+
+Потом я перезапускал postfix 
+
+    systemctl reload postfix
+
+![name](image/06.jpg){#fig-006 width=70%}
+
+Потом я просмотрел все параметры с значением, отличным от значения по умолчанию
+
+    postconf -n
+
+![name](image/07.jpg){#fig-007 width=70%}
+
+
+Дальше я изменил значение домена
+
+
+    postconf -e 'mydomain = qscalizaya.net'
+
+![name](image/08.jpg){#fig-008 width=70%}
+
+
+
+Затем я отключил ipv6 в списке разрешенных в работе postfix
+
+    postconf inet_protocols
+    postconf -e 'inet_protocols = ipv4'
+
+![name](image/09.jpg){#fig-009 width=70%}
+
+
+И потом я перезагрузил конфигурацию Postfix
+
+    postfix check
+    systemctl reload postfix
+
+![name](image/10.jpg){#fig-010 width=70%}
+
+
+## Проверка работы Postfix
+
+Чтобы проверить работу postfix  я в сервере под учетной записью пользователя отправил себе письмо, используя mail
+
+    echo .| mail -s test1 qscalizaya@server.qscalizaya.net
+
+![name](image/11.jpg){#fig-011 width=70%}
+
+
+
+Длаьше на второй терминале я запустил мониторинг работы почтовой службы и посмотрел что произошло с мое сообщение
+
+    tail -f /var/log/maillog
+
+![name](image/12.jpg){#fig-012 width=70%}
+
+Дальше на виртуальной машине client  установил postfix
+
+    dnf -y install postfix
+    dnf -y install s-nail
+
+![name](image/13.jpg){#fig-013 width=70%}
+
+
+Потом также я настроил его
+
+    postconf inet_protocols
+    postconf -e 'inet_protocols = ipv4'
+
+![name](image/14.jpg){#fig-014 width=70%}
+
+
+и перезагрузил утилиту
+
+    systemctl enable postfix
+    systemctl start postfix
+
+![name](image/15.jpg){#fig-015 width=70%}
+
+
+на ВМ client я еще раз отправил себе письмо чтобы смотреть результат мониторинга почтовой службы на сервере
+
+
+![name](image/16.jpg){#fig-016 width=70%}
+
+
+Дальше я попрбовал отправлять сообщение с клиента и получил его в сервере
+
+
+
+![name](image/20.jpg){#fig-020 width=70%}
+
+
+
+
+
+## Конфигурация Postfix для домена
+
+В этой части я отправил письмо на мой адрес
+
+    echo .| mail -s test2 qscalizaya@qscalizaya.net
+
+![name](image/22.jpg){#fig-022 width=70%}
+
+
+Потом я запустил мониторинг работы 
+
+    tail -f /var/log/maillog
+
+
+![name](image/23.jpg){#fig-023 width=70%}
+
+
+Дальше я посмотрел, какие сообщения ожидают в очереди на отправление
+
+    postqueue -q
+
+![name](image/24.jpg){#fig-024 width=70%}
+
+Потом я изменил файл зонов и обратных зонов
+
+
+          $TTL 1D
+      @ IN SOA @ server.user.net. (
+      2020110500 ; serial
+      1D ; refresh
+      1H ; retry
+      1W ; expire
+      3H ) ; minimum
+      NS @
+      A 192.168.1.1
+      MX 10 mail.user.net.
+      $ORIGIN user.net.
+      server A 192.168.1.1
+      ns A 192.168.1.1
+
+      dhcp A 192.168.1.1
+      www A 192.168.1.1
+      mail A 192.168.1.1
+
+
+
+      $TTL 1D
+      @ IN SOA @ server.user.net. (
+      2020110500 ; serial
+      1D ; refresh
+      1H ; retry
+      1W ; expire
+      3H ) ; minimum
+      NS @
+      A 192.168.1.1
+      PTR server.user.net.
+      MX 10 mail.user.net.
+      $ORIGIN 1.168.192.in-addr.arpa.
+      1 PTR server.user.net.
+      1 PTR ns.user.net.
+      1 PTR dhcp.user.net.
+      1 PTR www.user.net.
+      1 PTR mail.user.net.
+
+![name](image/25.jpg){#fig-025 width=70%}
+
+
+![name](image/21.jpg){#fig-021 width=70%}
+
+потом изменил настройку postfix
+
+    postconf -e 'mydestination = $myhostname, localhost.$mydomain, localhost, $mydomain'
+
+![name](image/26.jpg){#fig-026 width=70%}
+
+
+Дальше я перезагрузил конфигурацию postfix
+
+    postfix check
+    systemctl reload postfix
+
+![name](image/27.jpg){#fig-027 width=70%}
+
+
+
+потом восстановил контекст безопасности в SELinux
+
+    restorecon -vR /etc
+    restorecon -vR /var/named
+
+![name](image/28.jpg){#fig-028 width=70%}
+
+и перезапустил DNS и попробовал отправить сообщения 
+
+    systemctl restart named
+    postqueue -f
+
+![name](image/29.jpg){#fig-029 width=70%}
+
+
+Потом я пропобовал отправлять почты с клиента на доменный адрес
+
+    echo .| mail -s test6 qscalizaya@server.qscalizaya.net
+
+![name](image/32.jpg){#fig-031 width=70%}
+
+## Внесение изменений в настройки внутреннего окружения виртуальной машины
+
+в этой части я создал скрипт чтобы выполнить все что я сделал в этой лабораторной работе
+
+      cd /vagrant/provision/server/dns/var/named
+      cp -R /var/named/* /vagrant/provision/server/dns/var/named
+      cd /vagrant/provision/server
+      touch mail.sh
+      chmod +x mail.sh
+
+      #!/bin/bash
+      echo "Provisioning script $0"
+      echo "Install needed packages"
+      dnf -y install postfix
+      dnf -y install s-nail
+      echo "Copy configuration files"
+      #cp -R /vagrant/provision/server/mail/etc/* /etc
+      echo "Configure firewall"
+      firewall-cmd --add-service=smtp --permanent
+      firewall-cmd --reload
+      restorecon -vR /etc
+      echo "Start postfix service"
+      systemctl enable postfix
+      systemctl start postfix
+      echo "Configure postfix"
+      postconf -e 'mydomain = user.net'
+      postconf -e 'myorigin = $mydomain'
+      postconf -e 'inet_protocols = ipv4'
+      postconf -e 'inet_interfaces = all'
+      postconf -e 'mydestination = $myhostname, localhost.$mydomain, localhost,
+      ↪ $mydomain'
+      postconf -e 'mynetworks = 127.0.0.0/8, 192.168.0.0/16'
+      postfix set-permissions
+      restorecon -vR /etc
+      systemctl stop postfix
+      systemctl start postfix
+
+![name](image/30.jpg){#fig-030 width=70%}
+
+
+и также в файле vagrantfile я добавил инструкции для выполнения скрипта
+
+    server.vm.provision "server mail",
+    type: "shell",
+    preserve_order: true,
+    path: "provision/server/mail.sh"
+
+    client.vm.provision "client mail",
+    type: "shell",
+    preserve_order: true,
+    path: "provision/client/mail.sh"
+
+![name](image/31.jpg){#fig-031 width=70%}
+
+# Выводы
+
+В этой лаборатоной работе я смог смотреть работу утилиты postfiх и как настроить его
+
+# Список литературы{.unnumbered}
+
+::: {#refs}
+:::

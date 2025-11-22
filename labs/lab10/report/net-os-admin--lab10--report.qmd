@@ -1,0 +1,194 @@
+---
+## Author
+author:
+  name: Кхари Жекка Кализая Арсе
+  email: 1032234412@pfur.ru
+
+## Title
+title: "Oтчёт по лабораторной работе №10"
+subtitle: "Расширенные настройки SMTP-сервера"
+license: "CC BY"
+---
+
+# Цель работы
+
+Приобретение практических навыков по конфигурированию SMTP-сервера в части настройки аутентификации.
+
+# Задание
+
+1. Настройте Dovecot для работы с LMTP (см. раздел 10.4.1).
+2. Настройте аутентификацию посредством SASL на SMTP-сервере (см. раздел 10.4.2).
+3. Настройте работу SMTP-сервера поверх TLS (см. раздел 10.4.3).
+4. Скорректируйте скрипт для Vagrant, фиксирующий действия расширенной настройки SMTP-сервера во внутреннем окружении виртуальной машины server (см. раздел 10.4.4).
+
+# Выполнение лабораторной работы
+
+## Настройка LMTP в Dovecot
+
+Сначала я запустил сервер, получил права суперпользователя и смотрел логи почты:
+
+    sudo -i
+    tail -f /var/log/maillog
+
+![Просмотр логов почты](image/01.png){#fig-001 width=70%}
+
+Потом я изменил файл dovecot.conf, чтобы указать протокол lmtp:
+
+    vim /etc/dovecot/dovecot.conf
+    protocols = imap pop3 lmtp
+
+![Изменение dovecot.conf](image/02.png){#fig-002 width=70%}
+
+Дальше я настроил файл 10-master.conf:
+
+    vim /etc/dovecot/conf.d/10-master.conf
+
+![Редактирование 10-master.conf](image/03.png){#fig-003 width=70%}
+
+Потом я добавил строку в файле postfix.conf:
+
+    postconf -e 'mailbox_transport = lmtp:unix:private/dovecot-lmtp'
+
+![Добавление LMTP в Postfix](image/04.png){#fig-004 width=70%}
+
+и также я настроил файл 10-auth.conf:
+
+    vim /etc/dovecot/conf.d/10-auth.conf
+    auth_username_format = %Ln
+
+![Настройка 10-auth.conf](image/05.png){#fig-005 width=70%}
+
+Потом я перезагрузил postfix и dovecot:
+
+    systemctl restart postfix
+    systemctl restart dovecot
+
+![Перезапуск служб](image/06.png){#fig-006 width=70%}
+
+Дальше я попробовал отправить письмо с клиента на сервер:
+
+    echo .| mail -s "LMTP test" qscalizaya@qscalizaya.net
+    MAIL=~/Maildir/ mail
+
+![Отправка тестового письма LMTP](image/07.png){#fig-007 width=70%}
+
+![Результат отправки письма](image/08.png){#fig-008 width=70%}
+
+## Настройка SMTP-аутентификации
+
+Сначала я настроил файл `/etc/dovecot/conf.d/10-master.conf` и добавил следующий код:
+
+![Настройка auth в 10-master.conf](image/09.png){#fig-009 width=70%}
+
+Потом еще раз настроил postfix:
+
+    postconf -e 'smtpd_sasl_type = dovecot'
+    postconf -e 'smtpd_sasl_path = private/auth'
+
+![Настройка SASL в Postfix](image/10.png){#fig-010 width=70%}
+
+Добавил ограничения для получения писем:
+
+    postconf -e 'smtpd_recipient_restrictions = reject_unknown_recipient_domain permit_mynetworks, reject_non_fqdn_recipient, reject_unauth_destination reject_unverified_recipient, permit'
+
+![Настройка ограничений получателей](image/11.png){#fig-011 width=70%}
+
+Также я настроил локальные адреса SMTP:
+
+    postconf -e 'mynetworks = 127.0.0.0/8'
+
+![Указание локальных сетей SMTP](image/12.png){#fig-012 width=70%}
+
+Также я изменил файл master.cf:
+
+    smtp inet n - n - - smtpd
+    -o smtpd_sasl_auth_enable=yes
+    -o smtpd_recipient_restrictions=reject_non_fqdn_recipient,reject_unknown_recipient_domain,permit_sasl_authenticated,reject
+
+![Изменение master.cf](image/13.png){#fig-013 width=70%}
+
+и перезагрузил postfix и dovecot:
+
+    systemctl restart postfix
+    systemctl restart dovecot
+
+![Перезапуск postfix и dovecot](image/14.png){#fig-014 width=70%}
+
+Потом в клиенте я установил telnet:
+
+    sudo -i
+    dnf -y install telnet
+
+![Установка Telnet](image/15.png){#fig-015 width=70%}
+
+Потом я создал строку аутентификации:
+
+    printf 'qscalizaya\x00qscalizaya\x00123456' | base64
+
+![Создание base64 для аутентификации](image/16.png){#fig-016 width=70%}
+
+Потом я использовал команду telnet, чтобы подключиться к серверу и пройти аутентификацию:
+
+    telnet server.qscalizaya.net 25
+    EHLO test
+    AUTH PLAIN dXNlcgB1c2VyADEyMzQ1Ng==
+    quit
+
+![Проверка SMTP-аутентификации через Telnet](image/17.png){#fig-017 width=70%}
+
+## Настройка SMTP over TLS
+
+Потом я настроил TLS в сервере:
+
+    cp /etc/pki/dovecot/certs/dovecot.pem /etc/pki/tls/certs
+    cp /etc/pki/dovecot/private/dovecot.pem /etc/pki/tls/private
+
+![Копирование сертификатов TLS](image/18.png){#fig-018 width=70%}
+
+Также настроил postfix:
+
+    postconf -e 'smtpd_tls_cert_file=/etc/pki/tls/certs/dovecot.pem'
+    postconf -e 'smtpd_tls_key_file=/etc/pki/tls/private/dovecot.pem'
+    postconf -e 'smtpd_tls_session_cache_database = btree:/var/lib/postfix/smtpd_scache'
+    postconf -e 'smtpd_tls_security_level = may'
+    postconf -e 'smtp_tls_security_level = may'
+
+![Настройка TLS в Postfix](image/19.png){#fig-019 width=70%}
+
+Потом я изменил файл master.cf еще раз:
+
+    vim /etc/postfix/master.cf
+
+    submission inet n - n - - smtpd
+    -o smtpd_tls_security_level=encrypt
+    -o smtpd_sasl_auth_enable=yes
+    -o smtpd_recipient_restrictions=reject_non_fqdn_recipient,reject_unknown_recipient_domain,permit_sasl_authenticated,reject
+
+![Изменение master.cf для TLS](image/20.png){#fig-020 width=70%}
+
+и еще раз обновил firewall:
+
+    firewall-cmd --get-services
+    firewall-cmd --add-service=smtp-submission
+    firewall-cmd --add-service=smtp-submission --permanent
+    firewall-cmd --reload
+
+![Настройка firewall для SMTP-TLS](image/21.png){#fig-021 width=70%}
+
+Дальше я перезагрузил postfix и проверил соединение с сервером с помощью openssl:
+
+    openssl s_client -starttls smtp -crlf -connect server.qscalizaya.net:587
+    EHLO test
+    AUTH PLAIN dXNlcgB1c2VyADEyMzQ1Ng==
+    quit
+
+![Проверка TLS-соединения через OpenSSL](image/22.png){#fig-022 width=70%}
+
+# Выводы
+
+В этой лабораторной работе я изучил работу службы LMTP и аутентификацию посредством SASL, а также настроил SMTP over TLS для безопасной передачи сообщений.
+
+# Список литературы{.unnumbered}
+
+::: {#refs}
+:::

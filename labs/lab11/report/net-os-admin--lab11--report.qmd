@@ -1,0 +1,387 @@
+---
+## Author
+author:
+  name: Кхари Жекка Кализая Арсе
+  email: 1032234412@pfur.ru
+
+## Title
+title: "Oтчёта по лабораторной работе №11"
+subtitle: "Простейший вариант"
+license: "CC BY"
+---
+
+# Цель работы
+
+Приобретение практических навыков по настройке удалённого доступа к серверу
+с помощью SSH.
+
+# Задание
+
+1. Настройте запрет удалённого доступа на сервер по SSH для пользователя root (см.
+раздел 11.4.1).
+2. Настройте разрешение удалённого доступа к серверу по SSH только для пользователей группы vagrant и вашего пользователя (см. раздел 11.4.2).
+3. Настройте удалённый доступ к серверу по SSH через порт 2022 (см. раздел 11.4.3).
+4. Настройте удалённый доступ к серверу по SSH по ключу (см. раздел 11.4.4).
+5. Организуйте SSH-туннель с клиента на сервер, перенаправив локальное соединение с TCP-порта 80 на порт 8080 (см. раздел 11.4.5).
+6. Используя удалённое SSH-соединение, выполните с клиента несколько команд на
+сервере (см. раздел 11.4.6).
+7. Используя удалённое SSH-соединение, запустите с клиента графическое приложение на сервере (см. раздел 11.4.7).
+8. Напишите скрипт для Vagrant, фиксирующий действия по настройке SSH-сервера
+во внутреннем окружении виртуальной машины server. Соответствующим образом
+внесите изменения в Vagrantfile (см. раздел 11.4.8).
+
+
+
+# Выполнение лабораторной работы
+
+## Запрет удалённого доступа по SSH для пользователя root
+
+Сначала я выполнил команду чтобы запускать сервер, потом я выполнил команду для получения права суперпользователя
+
+    sudo -i
+    passwd root
+
+![права суперпользователя](image/01.png){#fig-001 width=70%}
+
+
+Потом в другом терминале я запускал мониторинг системных событий
+
+    sudo -i
+    journalctl -x -f
+
+![мониторинг](image/02.png){#fig-002 width=70%}
+
+
+Потом я запускал клиент и там я пыталься получить доступ к серверу посредством ssh 
+
+    ssh root@server.qscalizaya.net
+
+![ssh](image/03.png){#fig-003 width=70%}
+
+я не смог подключаться, там появился ошибка Permission denied please try again три раза и в сервере
+
+![ошибка при подключении](image/04.png){#fig-004 width=70%}
+
+Потом в сервере в файле /etc/ssh/sshd_config я изменил строку PermitRootLogin на PermitRootLogin no чтобы еще запрешать подключение к серверу 
+
+![изменение файла](image/05.png){#fig-005 width=70%}
+
+Дальше я перезагрузил утилиту sshd
+
+    systemctl restart sshd
+
+![перезагрузка утилиты](image/06.png){#fig-006 width=70%}
+
+Потом я еще раз пыталься соедиться к серверу через ssh протокол и еще раз не смог
+
+![попытка подключения](image/07.png){#fig-007 width=70%}
+
+
+## Ограничение списка пользователей для удалённого доступа по SSH
+
+Cначала я выполнил команду для соединения к серверу через ssh но к пользователю qscalizaya
+
+    ssh qscalizaya@server.qscalizaya.net
+    123456
+
+![подключение к пользователю](image/08.png){#fig-008 width=70%}
+
+там появился запрос чтобы ввел пароль, который я ввел и смог подключаться.
+
+Потом я изменил файл /etc/ssh/sshd_config и добавил строку AllowUsers vagrant чтобы разрешать подключение пользователей через vagrant в моем случае это не работает из-за моей конфигурации.
+
+    vim /etc/ssh/sshd_config
+    AllowUsers vangrant
+    :wq
+
+![изменение файла](image/09.png){#fig-009 width=70%}
+
+Потом я перезагрузил утилиту ssh
+
+    systemctl restart sshd
+
+![перезагрузка утилиты](image/10.png){#fig-010 width=70%}
+
+Потом я еще раз попробовал подключиться к серверу с клиента к пользователю qscalizaya но как я наверху объяснил это не работал
+
+    ssh qscalizaya@server.qscalizaya.net
+
+![подключение к серверу](image/11.png){#fig-011 width=70%}
+
+Потом я еще раз изменил файл и добавил на ту же строку слово qscalizaya (реально я здесь сначала добавил user и появился ошибка, это я решил вне записи)
+
+    AllowUsers vagrant qscalizaya
+
+![настройка файла](image/12.png){#fig-01 width=70%}
+
+Потом я перезагрузил утилиту sshd
+
+    systemctl restart sshd
+
+![перезагрузка утилиты](image/13.png){#fig-01 width=70%}
+
+Потом еще раз попыталься подключаться к серверу но не смог из-за ошибки в строке
+
+![попытка подключения](image/14.png){#fig-014 width=70%}
+
+
+
+
+## Настройка дополнительных портов для удалённого доступа по SSH
+
+Сначала я открыл файл /etc/ssh/sshd_config и там нашел строки Port 22 и Port 2022 теоретически такие строки не должны были там, но они были там когда я открыл файл
+
+    vim /etc/ssh/sshd_config
+    /Port
+    :q
+
+
+![настройка файла](image/15.png){#fig-015 width=70%}
+
+Потом я еще раз перезагрузил утилиту sshd
+
+    sysmtemctl restart sshd
+
+![перезагрузка утилиты](image/16.png){#fig-01 width=70%}
+
+
+Потом я в сервере смотрел статус sshd чтобы подвердить что он слушает порты 22 и 2022
+
+
+    systemctl status -l sshd
+
+![статус](image/17.png){#fig-017 width=70%}
+
+![статус](image/18.png){#fig-018 width=70%}
+
+Потом я исправил метки SELinux к порту 2022
+
+    semanage port -a -t ssh_port_t -p tcp 2022
+
+
+![испавление метк](image/19.png){#fig-019 width=70%}
+
+Дальше я добавил закон на firewall 
+
+    firewall-cmd --add-port=2022/tcp
+    firewall-cmd --add-port=2022/tcp --permanent
+
+![firewall](image/20.png){#fig-020 width=70%}
+
+Потом я еще раз пыталься подключаться к серверу используя ssh 
+
+    ssh qscalizaya@server.qscalizaya.net
+
+здесь я уже изменил строку user на qscalizaya и подключение работал
+
+
+![подключение](image/21.png){#fig-021 width=70%}
+
+Дальше я пыталься получить права доступа суперпользователя и смог потом я вышел
+
+    sudo -i 
+    123456
+    ctrl d 
+    ctrl d
+  
+![проверка](image/22.png){#fig-022 width=70%}
+
+также я повторил действия для порта 2022
+
+    ssh -p2022 qscalizaya@server.qscalizaya.net
+    sudo -i 
+    123456
+    ctrl d 
+    ctrl d
+
+![проверка подключения](image/23.png){#fig-023 width=70%}
+
+
+##  Настройка удалённого доступа по SSH по ключу
+
+Сначала я изменил строку в файле /etc/ssh/sshd_config PublicAuthentication yes чтобы разрешать аутентификацию по ключу.
+
+    PubkeyAuthentication yes
+
+![настройка файла](image/25.png){#fig-025 width=70%}
+
+
+Дальше я перезагрузил утилиту sshd
+
+    systemctl restart sshd
+
+![перезагрузкаутилиты](image/26.png){#fig-026 width=70%}
+
+Потом я создал ключ ssh в клиенте 
+
+    ssh-keygen
+
+![создание ключа](image/27.png){#fig-027 width=70%}
+
+Потом этот ключ я скопировал на сервере
+
+    ssh-copy-id qscalizaya@server.qscalizaya.net
+
+![копия ключа на сервере](image/28.png){#fig-028 width=70%}
+
+Потом я попробовал подключение через протокол ssh без пароля. Потом я вышел
+
+    ssh qscalizaya@server.qscalizaya.net
+    ctrl d
+
+![подключение к серверу через ssh](image/29.png){#fig-029 width=70%}
+
+
+
+## Организация туннелей SSH, перенаправление TCP-портов
+
+Сначала я смотрел статус служб с протоклом tcp
+
+    lsof | grep TCP
+
+![статус](image/30.png){#fig-030 width=70%}
+
+Потом я перенаправял порт 80 на server.qscalizaya.net на порт 8080 на локольной машине 
+
+    ssh -fNL 8080:localhost:80 qscalizaya@server.qscalizaya.net
+
+![перенаправление портов](image/31.png){#fig-031 width=70%}
+
+Потом я смотрел запущены ли службы с протоколом TCP
+
+    lsof | grep TCP
+
+![статус службы](image/32.png){#fig-032 width=70%}
+
+
+Потом на клиенте я проверил подключение через браузер
+
+
+![подключение к серверу через браузер](image/33.png){#fig-033 width=70%}
+
+
+## Запуск консольных приложений через SSH
+
+Я еще раз подключился к серверу с клиента используя ssh и пыталься получить информацию от него
+
+имя узла сервера
+
+    ssh qscalizaya@server.qscalizaya.net hostпроверка команд
+    
+список файлова на сервере
+
+    ssh qscalizaya@server.qscalizaya.net ls -Al
+
+почта на сервере
+
+    ssh qscalizaya@server.qscalizaya.net MAIL=~/Maildir/ mail
+
+![проверка команд](image/34.png){#fig-034 width=70%}
+
+![проверка команд](image/35.png){#fig-035 width=70%}
+
+![проверка команд](image/36.png){#fig-036 width=70%}
+
+
+## Запуск графических приложений через SSH (X11Forwarding)
+
+Сначала я изменил строку в /etc/ssh/sshd_config 
+
+    X11Forwarding yes
+
+![настройка файла](image/37.png){#fig-037 width=70%}
+
+Потом я попробовал запусткать firefox 
+
+    ssh -YC qscalizaya@server.qscalizaya.net firefox
+
+![проверка](image/39.png){#fig-039 width=70%}
+
+
+## Внесение изменений в настройки внутреннего окружения виртуальной машины
+
+Сначала я настроил файлы для выполнения скрипта 
+
+    cd /vagrant/provision/server
+    mkdir -p /vagrant/provision/server/ssh/etc/ssh
+    cp -R /etc/ssh/sshd_config /vagrant/provision/server/ssh/etc/ssh/
+    cd /vagrant/provision/server
+    touch ssh.sh
+    chmod +x ssh.sh
+
+![настройка](image/40.png){#fig-040 width=70%}
+
+Потом я скопировал скрипт
+
+    #!/bin/bash
+    echo "Provisioning script $0"
+    echo "Copy configuration files"
+    cp -R /vagrant/provision/server/ssh/etc/* /etc
+    restorecon -vR /etc
+    echo "Configure firewall"
+    firewall-cmd --add-port=2022/tcp
+    firewall-cmd --add-port=2022/tcp --permanent
+    echo "Tuning SELinux"
+    semanage port -a -t ssh_port_t -p tcp 2022
+    echo "Restart sshd service"
+    systemctl restart sshd
+
+![скрипт](image/41.png){#fig-041 width=70%}
+
+
+и в конце концов я добавил инструкции к vagrant чтобы выполнил скрипт при запуске
+
+    server.vm.provision "server ssh",
+    type: "shell",
+    preserve_order: true,
+    path: "provision/server/ssh.sh"
+
+
+
+![настройка скрипта](image/42.png){#fig-042 width=70%}
+
+## Контрольные вопросы
+
+1. Запрет root, разрешение alice:
+
+В /etc/ssh/sshd_config установить PermitRootLogin no и добавить AllowUsers alice, затем выполнить systemctl restart sshd.
+
+
+2. SSH на нескольких портах:
+
+В sshd_config добавить несколько директив Port. Это нужно для обхода блокировок или разделения доступа.
+
+
+3. Параметры для фонового SSH-туннеля:
+
+Используются флаги -f и -N, чтобы перейти в фон и не выполнять команду.
+
+
+4. Локальная переадресация 5555 → 80:
+Выполнить:
+
+ssh -L 5555:server2.example.com:80 user@server2.example.com.
+
+
+5. SELinux для SSH на порту 2022:
+Включить порт:
+
+semanage port -a -t ssh_port_t -p tcp 2022
+или изменить, если занят.
+
+
+6. Межсетевой экран для SSH на 2022:
+
+В firewalld: firewall-cmd --add-port=2022/tcp --permanent и firewall-cmd --reload.
+
+
+
+
+# Выводы
+
+В этом лабораторной работе я смог смотреть как работает соединение через протокол ssh, какие риски могут возникнуть во время подключения, а также как их можно устранить
+
+# Список литературы{.unnumbered}
+
+::: {#refs}
+:::

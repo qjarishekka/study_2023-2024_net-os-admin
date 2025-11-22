@@ -1,0 +1,198 @@
+---
+## Author
+author:
+  name: Кхари Жекка Кализая Арсе
+  degrees: DSc
+  orcid: 0000-0002-0877-7063
+  email: 1032234412@pfur.ru
+  affiliation:
+    - name: Российский университет дружбы народов
+      country: Российская Федерация
+      postal-code: 117198
+      city: Москва
+      address: ул. Миклухо-Маклая, д. 6
+
+## Title
+title: "Oтчёт по лабораторной работе №12"
+subtitle: "Синхронизация времени"
+license: "CC BY"
+---
+
+# Цель работы
+
+Получение навыков по управлению системным временем и настройке синхронизации времени.
+
+# Задание
+
+1. Изучите команды по настройке параметров времени.
+2. Настройте сервер в качестве сервера синхронизации времени для локальной сети
+3. Напишите скрипты для Vagrant, фиксирующие действия по установке и настройке
+NTP-сервера и клиента.
+
+
+
+# Выполнение лабораторной работы
+
+## Настройка параметров времени
+
+Сначала я смотрел данные о времени в обах машинах (сервер и клиент).
+
+    timedatectl
+
+![name](image/01.png){#fig-001 width=70%}
+
+![name](image/02.png){#fig-002 width=70%}
+
+там в списке я смог смотреть местное время, общее время, RTC время и временая зона.
+
+Потом я проверил в клиенете и в сервере текущее системное время
+
+    date
+
+![name](image/04.png){#fig-004 width=70%}
+
+![name](image/04.png){#fig-004 width=70%}
+
+Потом я смотрел аппаратное время в машинах
+
+    hwclock
+
+![name](image/05.png){#fig-005 width=70%}
+
+![name](image/06.png){#fig-006 width=70%}
+
+
+
+## Управление синхронизацией времени
+
+я пытался установить chrony но я заметил что он уже установлен в системе
+
+    dnf -y install chrony
+
+![name](image/07.png){#fig-007 width=70%}
+
+
+Потом я смотрел источники времени
+
+    chronyc sources
+
+![name](image/08.png){#fig-008 width=70%}
+
+там появлялись ip-адресы от которых служба получает данные о времени
+
+Дальше я открыл файл /etc/chrony.conf и изменил строку, которая разрешает подключение через порт 16 на ip-address 192.168.0.0
+
+    vim /etc/chrony.conf
+    allow 192.168.0.0/16
+
+![name](image/09.png){#fig-009 width=70%}
+
+Потом я перезагрузил службу chronyd
+
+    systemctl restart chronyd
+
+![name](image/10.png){#fig-010 width=70%}
+
+
+Дальше я настроил межсетевой экран на сервере чтобы разрешать службе работать
+
+    firewall-cmd --add-service=ntp --permanent
+    firewall-cmd --reload
+
+![name](image/11.png){#fig-011 width=70%}
+
+Потом в клиенет я добавил строку в файле  /etc/chrony.conf и удалил остальлные строки
+
+    vim /etc/chrony.conf
+    server server.qscalizaya.net iburst
+
+![name](image/12.png){#fig-012 width=70%}
+
+и также я перезагрузил его
+
+    systemctl restart chronyd
+
+![name](image/13.png){#fig-013 width=70%}
+
+Потом в клиенте еще раз я смотрел откуда полечает данные о веремени служба chronyd
+
+    chronyc sources
+
+![name](image/14.png){#fig-014 width=70%}
+
+и так комада вернулся ip адрес, который был мой, также startum, poll reach и lastRx которые объясняют:
+- иерархическое расстояние: в моем случае значит Синхронизировано со Stratum 2
+- частота обращения консула к серверу: в моем случае 6 (2^6 = 64 секунды)
+- 8-битный регистр
+- сколько секунд прошло с момента последнего ответа NTP-сервера
+
+
+потом я получил подробную информацию о синхронизации 
+
+    chronyc tracking
+
+![name](image/15.png){#fig-015 width=70%}
+
+
+Здесь я получил еще информацию как system time, last offset, RMS offset, residual freq, skw, root delay, root dispersion, leap status
+
+- system time — текущее системное время машины.
+- last offset — последнее измеренное отклонение времени от сервера.
+- RMS offset — среднеквадратичное отклонение времени за несколько измерений.
+- residual freq — остаточная частотная ошибка локальных часов.
+- skw (skew) — оценка дрейфа частоты системных часов.
+- root delay — суммарная задержка до источника времени.
+- root dispersion — суммарная возможная погрешность времени.
+- leap status — статус высокосекундной корректировки (нужна ли вставка/удаление секунды).
+
+
+## Внесение изменений в настройки внутреннего окружения виртуальных машин
+
+Потом я настроил каталоги чтобы написать скрипт 
+
+    cd /vagrant/provision/server
+    mkdir -p /vagrant/provision/server/ntp/etc
+    cp -R /etc/chrony.conf /vagrant/provision/server/ntp/etc/
+    cd /vagrant/provision/server
+    touch ntp.sh
+    chmod +x ntp.sh
+
+![name](image/16.png){#fig-016 width=70%}
+
+и написал скрипт
+
+![name](image/17.png){#fig-017 width=70%}
+
+
+и также я повторил действие в клиенте
+
+    cd /vagrant/provision/client
+    mkdir -p /vagrant/provision/client/ntp/etc
+    cp -R /etc/chrony.conf /vagrant/provision/client/ntp/etc/
+    cd /vagrant/provision/client
+    touch ntp.sh
+    chmod +x ntp.sh
+
+![name](image/18.png){#fig-018 width=70%}
+
+и написал скрипт
+
+![name](image/19.png){#fig-019 width=70%}
+
+
+Потом я настроил Vagrantfile чтобы выполнил скрипт
+
+![name](image/20.png){#fig-020 width=70%}
+
+![name](image/21.png){#fig-021 width=70%}
+
+
+
+# Выводы
+
+В этой лабораторной работе я смог смотреть службу chrony чтобы привязать время сервера к клиенту
+
+# Список литературы{.unnumbered}
+
+::: {#refs}
+:::

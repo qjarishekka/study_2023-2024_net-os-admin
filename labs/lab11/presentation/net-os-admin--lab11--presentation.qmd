@@ -1,0 +1,532 @@
+---
+## Author
+author:
+  name: Кхари Жекка Кализая Арсе
+  email: 1032234412@pfur.ru
+  affiliation:
+    - name: Российский университет дружбы народов
+      country: Российская Федерация
+      postal-code: 117198
+      city: Москва
+      address: ул. Миклухо-Маклая, д. 6
+## Title
+title: презентация №11
+subtitle: Настройка безопасного удалённого доступа по протоколу SSH
+license: CC BY
+date: today
+date-format: "YYYY-MM-DD" # Example: 2025-09-06
+---
+
+# Запрет удалённого доступа по SSH для пользователя root
+
+## journal
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * journalctl -x -f
+
+:::
+::: {.column width="60%"}
+
+![](./image/02.png)
+
+:::
+::::::::::::::
+
+## проверка подключения
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * ssh root@server.qscalizaya.net
+
+:::
+::: {.column width="60%"}
+
+![](./image/03.png)
+
+:::
+::::::::::::::
+
+
+## настройка файла /etc/ssh/ssh_config
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * PermitRootLogin no
+
+:::
+::: {.column width="60%"}
+
+![](./image/05.png)
+
+:::
+::::::::::::::
+
+
+## настройка файла /etc/ssh/ssh_config
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * systemctl restart sshd
+
+:::
+::: {.column width="60%"}
+
+![](./image/06.png)
+
+:::
+::::::::::::::
+
+
+## проверка подключения
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * ssh root@server.qscalizaya.net
+
+:::
+::: {.column width="60%"}
+
+![](./image/07.png)
+
+:::
+::::::::::::::
+
+
+
+# Ограничение списка пользователей для удалённого доступа по SSH
+
+## проверка подключения
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * ssh qscalizaya@server.qscalizaya.net
+
+:::
+::: {.column width="60%"}
+
+![](./image/08.png)
+
+:::
+::::::::::::::
+
+
+## настройка файла
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * AllowUsers vagrant
+
+:::
+::: {.column width="60%"}
+
+![](./image/09.png)
+
+:::
+::::::::::::::
+
+## проверка подключения
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * ssh qscalizaya@server.qscalizaya.net
+
+:::
+::: {.column width="60%"}
+
+![](./image/11.png)
+
+:::
+::::::::::::::
+
+## настройка файла
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * AllowUsers vagrant qscalizaya
+
+:::
+::: {.column width="60%"}
+
+![](./image/14.png)
+
+:::
+::::::::::::::
+
+
+
+
+# Настройка дополнительных портов для удалённого доступа по SSH
+
+## настройка файла
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * Port 22
+  * Port 2022
+
+:::
+::: {.column width="60%"}
+
+![](./image/15.png)
+
+:::
+::::::::::::::
+
+
+## статус службы
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * systemctl status -l sshd
+
+:::
+::: {.column width="60%"}
+
+![](./image/18.png)
+
+:::
+::::::::::::::
+
+## исправление метки
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * semanage port -a -t ssh_port_t -p tcp 2022
+
+:::
+::: {.column width="60%"}
+
+![](./image/19.png)
+
+:::
+::::::::::::::
+
+## исправление метки
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * semanage port -a -t ssh_port_t -p tcp 2022
+
+:::
+::: {.column width="60%"}
+
+![](./image/19.png)
+
+:::
+::::::::::::::
+
+
+## firewall
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * firewall-cmd --add-port=2022/tcp --permanent
+
+:::
+::: {.column width="60%"}
+
+![](./image/20.png)
+
+:::
+::::::::::::::
+
+
+## проверка подключения
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * ssh qscalizaya@server.qscalizaya.net
+
+:::
+::: {.column width="60%"}
+
+![](./image/22.png)
+
+:::
+::::::::::::::
+
+## проверка подключения
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * ssh -p2022 qscalizaya@server.qscalizaya.net
+
+:::
+::: {.column width="60%"}
+
+![](./image/22.png)
+
+:::
+::::::::::::::
+
+
+
+# Настройка удалённого доступа по SSH по ключу
+
+## настройка
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * PubkeyAuthentication yes
+
+:::
+::: {.column width="60%"}
+
+![](./image/25.png)
+
+:::
+::::::::::::::
+
+
+## ssh-genkey
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * ssh-genkey
+
+:::
+::: {.column width="60%"}
+
+![](./image/27.png)
+
+:::
+::::::::::::::
+
+## копия ключа
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * ssh-copy-id qscalizaya@server.qscalizaya.net
+
+:::
+::: {.column width="60%"}
+
+![](./image/28.png)
+
+:::
+::::::::::::::
+
+
+## проверка
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * ssh qscalizaya@server.qscalizaya.net
+
+:::
+::: {.column width="60%"}
+
+![](./image/29.png)
+
+:::
+::::::::::::::
+
+# Организация туннелей SSH, перенаправление TCP-портов
+
+## статус службы
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * lsof | grep TCP
+
+:::
+::: {.column width="60%"}
+
+![](./image/30.png)
+
+:::
+::::::::::::::
+
+## проверка
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * ssh -fNL 8080:localhost:80 user@server.user.net
+
+:::
+::: {.column width="60%"}
+
+![](./image/31.png)
+
+:::
+::::::::::::::
+
+
+## статус службы
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * lsof | grep TCP
+
+:::
+::: {.column width="60%"}
+
+![](./image/32.png)
+
+:::
+::::::::::::::
+
+
+## подключение через браузер
+
+:::::::::::::: {.columns align=center}
+
+::: {.column width="70%"}
+
+![](./image/33.png)
+
+:::
+::::::::::::::
+
+# Запуск консольных приложений через SSH
+
+## hostname
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * ssh user@server.user.net hostname
+
+:::
+::: {.column width="60%"}
+
+![](./image/34.png)
+
+:::
+::::::::::::::
+
+## список файлов 
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * ssh user@server.user.net ls -Al
+
+
+:::
+::: {.column width="60%"}
+
+![](./image/35.png)
+
+:::
+::::::::::::::
+
+## Почта
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * ssh user@server.user.net MAIL=~/Maildir/ mail
+
+
+:::
+::: {.column width="60%"}
+
+![](./image/36.png)
+
+:::
+::::::::::::::
+
+
+# Запуск графических приложений через SSH (X11Forwarding)
+
+## настройка
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * X11Forwarding yes
+
+:::
+::: {.column width="60%"}
+
+![](./image/37.png)
+
+:::
+::::::::::::::
+
+## проверка
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * ssh -YC user@server.user.net firefox
+
+:::
+::: {.column width="60%"}
+
+![](./image/39.png)
+
+:::
+::::::::::::::
+
+# настройка скрипта 
+
+## создание каталоги
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * cd /vagrant/provision/server
+  * mkdir -p /vagrant/provision/server/ssh/etc/ssh
+  * cp -R /etc/ssh/sshd_config /vagrant/provision/server/ssh/etc/ssh/
+  * cd /vagrant/provision/server
+  * touch ssh.sh
+  * chmod +x ssh.sh
+
+:::
+::: {.column width="60%"}
+
+![](./image/40.png)
+
+:::
+::::::::::::::
+
+## cкрипт
+
+:::::::::::::: {.columns align=center}
+
+::: {.column width="70%"}
+
+![](./image/41.png)
+
+:::
+::::::::::::::
+
+## cкрипт в Vagrantfile
+
+:::::::::::::: {.columns align=center}
+
+::: {.column width="70%"}
+
+![](./image/42.png)
+
+:::
+::::::::::::::
+
+
+

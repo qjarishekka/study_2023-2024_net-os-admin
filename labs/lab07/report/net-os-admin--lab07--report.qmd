@@ -1,0 +1,183 @@
+---
+## Author
+author:
+  name: Кхари Жекка Кализая Арсе
+  email: qjarishekka@outlook.com
+
+## Title
+title: "отчёт по лабораторной работе №7"
+subtitle: "Расширенные настройки межсетевого экрана"
+license: "CC BY"
+---
+
+# Цель работы
+
+Получить навыки настройки межсетевого экрана в Linux в части переадресации
+портов и настройки Masquerading.
+
+# Задание
+
+1. Настройте межсетевой экран виртуальной машины server для доступа к серверу
+по протоколу SSH не через 22-й порт, а через порт 2022 (см. разделы 7.4.1 и 7.4.2).
+2. Настройте Port Forwarding на виртуальной машине server (см. разделы 7.4.3).
+3. Настройте маскарадинг на виртуальной машине server для организации доступа
+клиента к сети Интернет (см. раздел 7.4.3).
+4. Напишите скрипт для Vagrant, фиксирующий действия по расширенной настройке
+межсетевого экрана. Соответствующим образом внести изменения в Vagrantfile
+(см. раздел 7.4.4).
+
+
+# Выполнение лабораторной работы
+
+## Создание пользовательской службы firewalld
+
+Сначала  я запускал сервер и получил права суперпользователя
+
+![Запуск сервера](image/01.jpg){#fig-001 width=70%}
+
+Потом я скопировал файл ssh.xml на каталог /etc/firewalld/services
+
+    cp /usr/lib/firewalld/services/ssh.xml /etc/firewalld/services/ssh-custom.xml
+
+![Копирование файла ssh.xml](image/02.jpg){#fig-002 width=70%}
+
+Дальше я посмотрел содержание файла 
+
+    cat /etc/firewalld/services/ssh-custom.xml
+
+там мы можем смотреть несколькие данные
+
+    <short> → краткое имя, отображаемое в команде firewall-cmd --list-services
+    <description> → описательный текст
+    <port protocol="tcp" port="2222"/> → указывает порт и протокол, которые будут открыты при активации данного сервиса (в этом примере — порт 2222 по TCP)
+    Также могут встречаться дополнительные теги, такие как:
+    <destination ipv4="..." ipv6="..."/> 
+    <module name="mod_firewalld"/> 
+    <include service="ssh"/> (для наследования правил другого сервиса)
+
+![Просмотр содержимого файла ssh-custom.xml](image/03.jpg){#fig-003 width=70%}
+
+Потом я откройл файл ssh-custom.xml и заменил порт 22 на 2022
+
+    vim /etc/firewalld/services/ssh-custom.xml
+    <port protocol="tcp" port="2022"/>
+
+![Изменение порта SSH на 2022](image/04.jpg){#fig-004 width=70%}
+
+Даьлше смотрел список доступных firewalld служб
+
+    firewall-cmd --get-services
+
+![Проверка списка служб firewalld](image/05.jpg){#fig-005 width=70%}
+
+и перезагрузил правила межсетевого экрана
+
+    firewall-cmd --reload
+    firewall-cmd --get-services
+    firewall-cmd --list-services
+
+![Перезагрузка и проверка служб](image/06.jpg){#fig-006 width=70%}
+
+потом дабавил службу в firewalld
+
+    firewall-cmd --add-service=ssh-custom
+    firewall-cmd --list-services
+
+![Добавление службы ssh-custom](image/07.jpg){#fig-007 width=70%}
+
+и потом я сохранил информации
+
+    firewall-cmd --add-service=ssh-custom --permanent
+    firewall-cmd --reload
+
+![Сохранение конфигурации службы](image/08.jpg){#fig-008 width=70%}
+
+## Перенаправление портов
+
+Здесь сначала я организовал на сервере переадресацию с порта 2022 на порт 22
+
+    firewall-cmd --add-forward-port=port=2022:proto=tcp:toport=22
+
+![Настройка перенаправления портов](image/09.jpg){#fig-009 width=70%}
+
+Потом попробовал получить ключ ssh с клиента
+
+    ssh -p 2022 qscalizaya@server.qscalizaya.net
+
+![Проверка подключения по SSH на порту 2022](image/10.jpg){#fig-010 width=70%}
+
+## Настройка Port Forwarding и Masquerading
+
+на сервере я посмотрел, актирована ли в ядре системы возможнотсь перенаправления IPv4-пакетов 
+
+    sysctl -a | grep forward  
+
+![Проверка параметров перенаправления IPv4](image/11.jpg){#fig-011 width=70%}
+
+Потом я включил перенаправлние IPv4
+
+    echo "net.ipv4_forward" = 1 > /etc/sysctl.d/90-forward.conf
+    sysctl -p /etc/sysctl.d/90-forward.conf
+
+Дальше я включил маскарадинг на сервере
+
+    firewall-cmd --zone=public --add-masquerade --permanent
+    firewall-cmd --reload
+
+![Включение маскарадинга](image/12.jpg){#fig-012 width=70%}
+
+Потом на клиенте проверил доступность выхода в Интернет
+
+![проверка интернета](image/16.jpg){#fig-016 width=70%}
+
+## Внесение изменений в настройки внутреннего окружения виртуальной машины
+
+здесь я перешел в каталог для внесения изменений в настройки внутреннего окружения и создал каталог firewall в которой помешал конфигурационные файлы 
+
+    cd /vagrant/provision/server
+    mkdir -p /vagrant/provision/server/firewall/etc/firewalld/services
+    mkdir -p /vagrant/provision/server/firewall/etc/sysctl.d
+    cp -r /etc/firewalld/services/ssh-custom.xml /vagrant/provision/server/firewall/etc/firewalld/services/
+    cp -r /etc/sysctl.d/90-forward.conf /vagrant/provision/server/firewall/etc/sysctl.d
+
+
+
+Потом в каталоге server создал файл firewall.sh
+
+    cd /vagrant/provision/server
+    touch firewall.sh
+    chmod +x firewall.sh
+
+
+и поставил следующий скрипт
+
+    #!/bin/bash
+    echo "Provisioning script $0"
+    echo "Copy configuration files"
+    cp -R /vagrant/provision/server/firewall/etc/* /etc
+    echo "Configure masquerading"
+    firewall-cmd --add-service=ssh-custom --permanent
+    firewall-cmd --add-forward-port=port=2022:proto=tcp:toport=22 --permanent
+    firewall-cmd --zone=public --add-masquerade --permanent
+    firewall-cmd --reload
+    restorecon -vR /etc
+
+
+
+Потом в файле Vagrangtfile я добавил инструкции для запуска скрипта
+
+    server.vm.provision "server firewall",
+    type: "shell",
+    preserve_order: true,
+    path: "provision/server/firewall.sh"
+
+![файл vagrantfile](image/15.png){#fig-015 width=70%}
+
+# Выводы
+
+в эту лабораторную работу я смог смотреть как работает перенаправление портов и как использовать службу ssh-custom
+
+# Список литературы{.unnumbered}
+
+::: {#refs}
+:::

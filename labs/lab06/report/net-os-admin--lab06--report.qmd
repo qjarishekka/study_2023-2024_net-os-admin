@@ -1,0 +1,192 @@
+---
+author:
+  name: Кхари Жекка Кализая Арсе
+  email: 1032234412@pfur.ru
+
+title: "Отчёт по лабораторной работе №6"
+subtitle: "Простейший вариант"
+license: "CC BY"
+---
+
+# Цель работы
+
+Приобретение практических навыков по установке, настройке и администрированию СУБД MariaDB в среде виртуальной машины Rocky Linux, включая настройку кодировки, создание базы данных, пользователей, таблиц, резервное копирование и автоматизацию через скрипт provision.
+
+# Задание
+
+1. Установить MariaDB на виртуальной машине server и выполнить базовую настройку безопасности.  
+2. Настроить кодировку символов UTF-8 для корректного хранения данных.  
+3. Создать базу данных `addressbook`, таблицу `city`, добавить данные и создать пользователя с правами на работу с базой данных.  
+4. Выполнить резервное копирование базы данных и восстановление из резервных копий.  
+5. Подготовить скрипт `mysql.sh` для автоматизации установки и настройки MariaDB при старте ВМ.
+
+# Выполнение лабораторной работы
+
+Сначала я запустил ВМ сервер:
+
+	  vagrant up server
+
+([рис. 01]).
+
+![name](image/01.jpg){#fig-01  width=70%}
+
+Затем я вошел под моим пользователем и открыл терминал, получив права суперпользователя:
+
+	  sudo -i
+
+([рис. 02]).
+
+![name](image/02.jpg){#fig-02  width=70%}
+
+Установил необходимые пакеты MariaDB:
+
+	  dnf -y install mariadb mariadb-server
+
+([рис. 03]).
+
+![name](image/03.jpg){#fig-03  width=70%}
+
+
+Запустил и включил MariaDB:
+
+	  systemctl start mariadb
+	  systemctl enable mariadb
+
+([рис. 05]).
+
+![name](image/05.jpg){#fig-05  width=70%}
+
+Проверил прослушиваемый порт:
+
+	  ss -tulpen | grep mysql
+
+([рис. 06]).
+
+![name](image/06.jpg){#fig-06  width=70%}
+
+Запустил скрипт настройки безопасности:
+
+	  mysql_secure_installation
+
+([рис. 07]).
+
+![name](image/07.jpg){#fig-07  width=70%}
+
+Вошел в MariaDB как root и проверил доступные базы данных:
+
+	  mysql -u root -p
+	  SHOW DATABASES;
+
+([рис. 08]).
+
+![name](image/08.jpg){#fig-08  width=70%}
+
+Настроил кодировку UTF-8:
+
+	  cd /etc/my.cnf.d
+	  touch utf8.cnf
+	  # В utf8.cnf добавил:
+	  # [client]
+	  # default-character-set = utf8
+	  # [mysqld]
+	  # character-set-server = utf8
+	  systemctl restart mariadb
+
+([рис. 09]).
+
+![name](image/09.jpg){#fig-09  width=70%}
+
+Создал базу данных `addressbook` и таблицу `city`:
+
+	  mysql -u root -p
+	  CREATE DATABASE addressbook CHARACTER SET utf8 COLLATE utf8_general_ci;
+	  USE addressbook;
+	  CREATE TABLE city(name VARCHAR(40), city VARCHAR(40));
+
+([рис. 10]).
+
+![name](image/10.jpg){#fig-10  width=70%}
+
+Добавил данные:
+
+	  INSERT INTO city(name,city) VALUES ('Иванов','Москва');
+	  INSERT INTO city(name,city) VALUES ('Петров','Сочи');
+	  INSERT INTO city(name,city) VALUES ('Сидоров','Дубна');
+
+([рис. 11]).
+
+![name](image/11.jpg){#fig-11  width=70%}
+
+Проверил таблицу:
+
+	  SELECT * FROM city;
+
+([рис. 12]).
+
+![name](image/12.jpg){#fig-12  width=70%}
+
+Создал пользователя и выдал права:
+
+	  CREATE USER user@'%' IDENTIFIED BY 'password';
+	  GRANT SELECT,INSERT,UPDATE,DELETE ON addressbook.* TO user@'%';
+	  FLUSH PRIVILEGES;
+
+([рис. 13]).
+
+![name](image/13.jpg){#fig-13  width=70%}
+
+Вышел из MariaDB и проверил список баз и таблиц:
+
+	  mysqlshow -u root -p
+	  mysqlshow -u qscalizaya -p addressbook
+
+([рис. 14]).
+
+![name](image/14.jpg){#fig-14  width=70%}
+
+Создал резервные копии базы данных:
+
+	  mkdir -p /var/backup
+	  mysqldump -u root -p addressbook > /var/backup/addressbook.sql
+	  mysqldump -u root -p addressbook | gzip > /var/backup/addressbook.sql.gz
+	  mysqldump -u root -p addressbook | gzip > $(date +/var/backup/addressbook.%Y%m%d.%H%M%S.sql.gz)
+
+([рис. 15]).
+
+![name](image/15.jpg){#fig-15  width=70%}
+
+Восстановил базу данных из резервной копии:
+
+	  mysql -u root -p addressbook < /var/backup/addressbook.sql
+	  zcat /var/backup/addressbook.sql.gz | mysql -u root -p addressbook
+
+([рис. 16]).
+
+![name](image/16.jpg){#fig-16  width=70%}
+
+Подготовил скрипт `mysql.sh` для автоматизации всех действий:
+
+    touch /vagrant/provision/server/mysql.sh
+    chmod +x /vagrant/provision/server/mysql.sh
+	  Внутри скрипта прописал команды установки, копирования конфигурации и резервных копий, запуск MariaDB и создание базы данных
+
+([рис. 17]).
+
+![name](image/17.jpg){#fig-17  width=70%}
+
+Добавил provision в Vagrantfile для автоматического выполнения скрипта при старте VM.
+
+([рис. 18]).
+
+![name](image/18.jpg){#fig-18  width=70%}
+
+# Выводы
+
+В ходе лабораторной работы была успешно установлена и настроена СУБД MariaDB на виртуальной машине Rocky Linux.  
+Была произведена настройка кодировки UTF-8, создана база данных `addressbook` с таблицей `city`, добавлены данные, создан пользователь с правами доступа, выполнены резервные копии и их восстановление.  
+Также подготовлен скрипт автоматизации `mysql.sh`, обеспечивающий повторяемость установки и настройки MariaDB при запуске ВМ.
+
+# Список литературы{.unnumbered}
+
+::: {#refs}
+:::

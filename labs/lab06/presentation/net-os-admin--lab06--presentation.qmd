@@ -1,0 +1,228 @@
+---
+## Author
+author:
+  name: Кхари Жекка Кализая Арсе
+
+## Title
+title: Презентация по лабораторной работе №6
+subtitle: Установка и настройка системы управления базами данных MariaDB
+license: CC BY
+date: today
+date-format: "2025-11-10" # Example: 2025-09-06
+---
+
+# Установка MariaDB
+
+## установка
+
+:::::::::::::: {.columns align=center}
+::: {.column width="70%"}
+
+    dnf -y install mariadb mariadb-server
+:::
+::: {.column width="30%"}
+
+![](./image/03.jpg)
+
+:::
+::::::::::::::
+
+
+## настройка
+
+:::::::::::::: {.columns align=center}
+::: {.column width="70%"}
+
+    mysql_secure_installation
+
+:::
+::: {.column width="30%"}
+
+![](./image/07.jpg)
+
+:::
+::::::::::::::
+
+## запуск
+
+:::::::::::::: {.columns align=center}
+::: {.column width="70%"}
+
+    mysql -u root -p
+
+:::
+::: {.column width="30%"}
+
+![](./image/08.jpg)
+
+:::
+::::::::::::::
+
+## база данных по умолчаню 
+
+:::::::::::::: {.columns align=center}
+::: {.column width="70%"}
+
+    SHOW DATABASES;
+
+:::
+::: {.column width="30%"}
+
+![](./image/08.jpg)
+
+:::
+::::::::::::::
+
+
+# Создание базы данных
+
+## создать базу данных
+
+:::::::::::::: {.columns align=center}
+::: {.column width="70%"}
+
+    CREATE DATABASE addressbook CHARACTER SET utf8 COLLATE utf8_general_ci;
+
+:::
+::: {.column width="30%"}
+
+![](./image/10.jpg)
+
+:::
+::::::::::::::
+
+
+## создать таблицу
+
+:::::::::::::: {.columns align=center}
+::: {.column width="70%"}
+
+    CREATE TABLE city(name VARCHAR(40), city VARCHAR(40));
+
+:::
+::: {.column width="30%"}
+
+![](./image/10.jpg)
+
+:::
+::::::::::::::
+
+
+## заполнять таблицу
+
+:::::::::::::: {.columns align=center}
+::: {.column width="70%"}
+
+    INSERT INTO city(name,city) VALUES ('Иванов','Москва');
+
+:::
+::: {.column width="30%"}
+
+![](./image/11.jpg)
+
+:::
+::::::::::::::
+
+## изблекать из таблицы
+
+:::::::::::::: {.columns align=center}
+::: {.column width="70%"}
+
+    SELECT * FROM city;
+    
+:::
+::: {.column width="30%"}
+
+![](./image/12.jpg)
+
+:::
+::::::::::::::
+
+
+## дать права доступа к учетной записи
+
+:::::::::::::: {.columns align=center}
+::: {.column width="70%"}
+
+    CREATE USER user@'%' IDENTIFIED BY 'password';
+    GRANT SELECT,INSERT,UPDATE,DELETE ON addressbook.* TO user@'%';
+    FLUSH PRIVILEGES;
+
+:::
+::: {.column width="30%"}
+
+![](./image/13.jpg)
+
+:::
+::::::::::::::
+
+## смотреть таблицу
+
+:::::::::::::: {.columns align=center}
+::: {.column width="70%"}
+
+    mysqlshow -u root -p
+    mysqlshow -u root -p addressbook
+    mysqlshow -u user -p addressbook
+
+:::
+::: {.column width="30%"}
+
+![](./image/14.jpg)
+
+:::
+::::::::::::::
+
+
+# Резервные копии
+
+## backup
+
+:::::::::::::: {.columns align=center}
+::: {.column width="70%"}
+
+    mysqldump -u root -p addressbook > /var/backup/addressbook.sql
+    mysqldump -u root -p addressbook | gzip > /var/backup/addressbook.sql.gz
+    mysqldump -u root -p addressbook | gzip > $(date +/var/backup/addressbook.%Y%m%d.%H%M%S.sql.gz)
+
+
+:::
+::: {.column width="30%"}
+
+![](./image/15.jpg)
+
+:::
+::::::::::::::
+
+## восстановление базы данных из backup
+
+:::::::::::::: {.columns align=center}
+::: {.column width="70%"}
+
+    mysql -u root -p addressbook < /var/backup/addressbook.sq
+    zcat /var/backup/addressbook.sql.gz | mysql -u root -p addressbook
+
+:::
+::: {.column width="30%"}
+
+![](./image/16.jpg)
+
+:::
+::::::::::::::
+
+
+# Внесение изменений в настройки внутреннего окружения виртуальной машины
+
+## Докладчик
+
+:::::::::::::: {.columns align=center}
+::: {.column width="70%"}
+
+
+:::
+::: {.column width="30%"}
+
+![](./image/18.jpg)
+
+:::
+::::::::::::::

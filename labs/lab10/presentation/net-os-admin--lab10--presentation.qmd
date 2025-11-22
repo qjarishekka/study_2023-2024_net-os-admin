@@ -1,0 +1,276 @@
+---
+## Author
+author:
+  name: Кхари Жекка Кализая Арсе
+  email: 1032234412@pfur.ru 
+
+## Title
+title: презентация №10
+subtitle:  Расширенные настройки MTP-сервера
+
+license: CC BY
+date: today
+date-format: "YYYY-MM-DD" # Example: 2025-09-06
+---
+
+# Настройка LMTP в Dovecote
+
+## файл dovecot.conf
+
+:::::::::::::: {.columns align=center}
+
+::: {.column width="70%"}
+
+![](./image/02.png)
+
+:::
+::::::::::::::
+
+
+## файл 10-master
+
+:::::::::::::: {.columns align=center}
+
+::: {.column width="70%"}
+
+![](./image/03.png)
+
+:::
+::::::::::::::
+
+## postfix
+
+:::::::::::::: {.columns align=center}
+
+::: {.column width="70%"}
+
+![](./image/04.png)
+
+:::
+::::::::::::::
+
+
+## 10-auth.conf
+
+:::::::::::::: {.columns align=center}
+
+::: {.column width="70%"}
+
+![](./image/05.png)
+
+:::
+::::::::::::::
+
+
+## проверка
+
+:::::::::::::: {.columns align=center}
+
+::: {.column width="50%"}
+
+![](./image/07.png)
+
+:::
+
+::: {.column width="50%"}
+
+![](./image/08.png)
+
+:::
+::::::::::::::
+
+# Настройка SMTP-аутентификации
+
+
+## файл 10-master.conf
+
+:::::::::::::: {.columns align=center}
+
+::: {.column width="70%"}
+
+![](./image/09.png)
+
+:::
+::::::::::::::
+
+
+
+## настройка postfix
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+- postconf -e 'smtpd_sasl_type = dovecot'
+- postconf -e 'smtpd_sasl_path = private/auth'
+
+
+:::
+::: {.column width="70%"}
+
+![](./image/10.png)
+
+:::
+::::::::::::::
+
+
+## настройка postfix
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+- postconf -e 'smtpd_recipient_restrictions = reject_unknown_recipient_domain, permit_mynetworks, reject_non_fqdn_recipient, reject_unauth_destination, reject_unverified_recipient, permit'
+
+
+:::
+::: {.column width="70%"}
+
+![](./image/11.png)
+
+:::
+::::::::::::::
+
+
+
+
+## настройка postfix
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+- postconf -e 'mynetworks = 127.0.0.0/8'
+
+:::
+::: {.column width="70%"}
+
+![](./image/12.png)
+
+:::
+::::::::::::::
+
+
+## файл master.cf
+
+:::::::::::::: {.columns align=center}
+
+::: {.column width="70%"}
+
+![](./image/13.png)
+
+:::
+::::::::::::::
+
+## загрузка утилитов
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+- systemctl restart postfix
+- systemctl restart dovecot
+
+
+:::
+::: {.column width="70%"}
+
+![](./image/14.png)
+
+:::
+::::::::::::::
+
+## проверка
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+- printf 'qscalizaya\x00qscalizaya\x00123456' | base64
+- telnet server.user.net 25
+
+
+:::
+::: {.column width="70%"}
+
+![](./image/17.png)
+
+:::
+::::::::::::::
+
+
+
+# Настройка SMTP over TLS
+
+## копия файлов
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+- cp /etc/pki/dovecot/certs/dovecot.pem /etc/pki/tls/certs
+- cp /etc/pki/dovecot/private/dovecot.pem /etc/pki/tls/private
+
+:::
+::: {.column width="70%"}
+
+![](./image/18.png)
+
+:::
+::::::::::::::
+
+
+## настройка postfix
+
+:::::::::::::: {.columns align=center}
+
+::: {.column width="70%"}
+
+![](./image/19.png)
+
+:::
+::::::::::::::
+
+
+## настройка файла /etc/postfix/master.cf
+
+:::::::::::::: {.columns align=center}
+
+::: {.column width="70%"}
+
+![](./image/20.png)
+
+:::
+::::::::::::::
+
+
+
+## настройка firewall
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+- firewall-cmd --get-services
+- firewall-cmd --add-service=smtp-submission
+- firewall-cmd --add-service=smtp-submission --permanent
+- firewall-cmd --reload
+
+
+:::
+::: {.column width="70%"}
+
+![](./image/21.png)
+
+:::
+::::::::::::::
+
+
+## проверка
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+- openssl s_client -starttls smtp -crlf -connect server.user.net:587
+
+
+:::
+::: {.column width="70%"}
+
+![](./image/22.png)
+
+:::
+::::::::::::::

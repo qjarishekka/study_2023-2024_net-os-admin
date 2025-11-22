@@ -1,0 +1,233 @@
+---
+## Author
+author:
+  name: Кхари Жекка Кализая Арсе
+  email: 1032234412@pfur.ru
+## Title
+title: презентация №8
+subtitle: Настройка SMTP-сервера
+license: CC BY
+date: today
+date-format: "YYYY-MM-DD" # Example: 2025-09-06
+---
+
+# установка postfix
+
+## установка
+
+:::::::::::::: {.columns align=center}
+::: {.column width="70%"}
+
+- dnf -y install postfix
+- dnf -y install s-nail
+
+:::
+::: {.column width="30%"}
+
+![](./image/01.jpg)
+
+:::
+::::::::::::::
+
+
+## настройка firewall
+
+:::::::::::::: {.columns align=center}
+::: {.column width="70%"}
+
+- firewall-cmd --add-service=smtp
+- firewall-cmd --add-service=smtp --permanent
+- firewall-cmd --list-services
+- restorecon -vR /etc
+
+:::
+::: {.column width="30%"}
+
+![](./image/03.jpg)
+
+:::
+::::::::::::::
+
+
+
+# Изменение параметров Postfix с помощью postcof
+
+## настройка
+
+:::::::::::::: {.columns align=center}
+::: {.column width="70%"}
+
+- postconf -e ‘myorigin = $mydomain’
+- postfix check
+- postconf -e 'mydomain = user.net'
+- postconf inet_protocols
+- postconf -e 'inet_protocols = ipv4'
+- postfix check
+- systemctl reload postfix
+
+:::
+::: {.column width="30%"}
+
+![](./image/06.jpg)
+
+:::
+::::::::::::::
+
+
+
+# Проверка работы  postfix
+
+## отправление письма
+
+:::::::::::::: {.columns align=center}
+::: {.column width="70%"}
+
+- echo .| mail -s test1 user@server.user.net
+
+:::
+::: {.column width="30%"}
+
+![](./image/11.jpg)
+
+:::
+::::::::::::::
+
+
+## log
+
+:::::::::::::: {.columns align=center}
+::: {.column width="70%"}
+
+- tail -f /var/log/maillog
+
+
+:::
+::: {.column width="30%"}
+
+![](./image/12.jpg)
+
+:::
+::::::::::::::
+
+## установка в клиенте
+
+:::::::::::::: {.columns align=center}
+::: {.column width="70%"}
+
+- dnf -y install postfix
+- dnf -y install s-nail
+
+
+:::
+::: {.column width="30%"}
+
+![](./image/13.jpg)
+
+:::
+::::::::::::::
+
+## настройка в клиенте
+
+:::::::::::::: {.columns align=center}
+::: {.column width="70%"}
+
+- postconf inet_protocols
+- postconf -e 'inet_protocols = ipv4'
+- systemctl enable postfix
+- systemctl start postfix
+- postconf inet_interfaces
+- postconf mynetworks
+- postconf -e 'inet_interfaces = all'
+- postconf -e 'mynetworks = 127.0.0.0/8, 192.168.0.0/16'
+
+
+:::
+
+::: {.column width="30%"}
+
+![](./image/14.jpg)
+
+:::
+
+::::::::::::::
+
+
+
+
+# Конфигурация Postfix для домена
+
+## тест 2
+
+:::::::::::::: {.columns align=center}
+::: {.column width="70%"}
+
+- echo .| mail -s test2 user@user.net
+
+:::
+::: {.column width="30%"}
+
+![](./image/16.jpg)
+
+:::
+::::::::::::::
+
+## настройка в зонах
+
+:::::::::::::: {.columns align=center}
+
+::: {.column width="100%"}
+
+![](./image/21.jpg)
+
+:::
+::::::::::::::
+
+## настройка в зонах
+
+:::::::::::::: {.columns align=center}
+
+::: {.column width="100%"}
+
+![](./image/25.jpg)
+
+:::
+::::::::::::::
+
+## настройка
+
+:::::::::::::: {.columns align=center}
+::: {.column width="70%"}
+
+- postconf -e 'mydestination = $myhostname, localhost.$mydomain, localhost, $mydomain'
+- postfix check
+- systemctl reload postfix
+- restorecon -vR /etc
+- restorecon -vR /var/named
+- systemctl restart named
+- postqueue -f
+
+:::
+::: {.column width="30%"}
+
+![](./image/29.jpg)
+
+:::
+::::::::::::::
+
+
+
+## отправление письма с клиента к серверу
+
+:::::::::::::: {.columns align=center}
+::: {.column width="70%"}
+
+- echo .| mail -s test1 user@server.user.net
+
+:::
+::: {.column width="30%"}
+
+![](./image/32.jpg)
+
+:::
+::::::::::::::
+

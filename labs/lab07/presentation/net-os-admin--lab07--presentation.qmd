@@ -1,0 +1,115 @@
+---
+## Author
+author:
+  name: кхари жекка кализая арсе
+  email: 1032234412@pfur.ru
+## Title
+title: презентация по лабораторной работе №7
+subtitle: Расширенные настройки межсетевого экрана
+license: CC BY
+date: today
+date-format: "YYYY-MM-DD" # Example: 2025-09-06
+---
+
+# Последовательность выполнения работы
+
+# Создание пользовательской службы firewalld
+
+## файл ssh-custom.xml
+
+:::::::::::::: {.columns align=center}
+::: {.column width="70%"}
+
+    cat /etc/firewalld/services/ssh-custom.xml
+    vim /etc/firewalld/services/ssh-custom.xml
+    <port protocol="tcp" port="2022"/>
+
+:::
+::: {.column width="30%"}
+
+![](./image/03.jpg)
+
+:::
+::::::::::::::
+
+## перезагрузка утилита firewall-cmd
+
+:::::::::::::: {.columns align=center}
+::: {.column width="70%"}
+
+    firewall-cmd --reload
+    firewall-cmd --get-services
+    firewall-cmd --list-services
+
+:::
+::: {.column width="30%"}
+
+![](./image/06.jpg)
+
+:::
+::::::::::::::
+
+## добавление службы в firewalld
+
+:::::::::::::: {.columns align=center}
+::: {.column width="70%"}
+
+    firewall-cmd --add-service=ssh-custom
+    firewall-cmd --add-service=ssh-custom --permanent
+    firewall-cmd --reload
+
+:::
+::: {.column width="30%"}
+
+![](./image/07.jpg)
+
+:::
+::::::::::::::
+
+
+# Перенаправление портов
+
+## Перенаправление портов
+
+:::::::::::::: {.columns align=center}
+::: {.column width="70%"}
+
+    firewall-cmd --add-forward-port=port=2022:proto=tcp:toport=22
+    ssh -p 2022 user@server.user.net
+
+:::
+::: {.column width="30%"}
+
+![](./image/09.jpg)
+
+:::
+::::::::::::::
+
+
+# Настройка Port Forwarding и Masquerading
+
+## Докладчик
+
+:::::::::::::: {.columns align=center}
+::: {.column width="70%"}
+
+    sysctl -a | grep forward
+    echo "net.ipv4.ip_forward = 1" > /etc/sysctl.d/90-forward.conf
+    sysctl -p /etc/sysctl.d/90-forward.conf
+    firewall-cmd --zone=public --add-masquerade --permanent
+    firewall-cmd --reload
+
+:::
+::: {.column width="30%"}
+
+![](./image/12.jpg)
+
+:::
+::::::::::::::
+
+
+# Спасибо за внимание
+
+
+
+

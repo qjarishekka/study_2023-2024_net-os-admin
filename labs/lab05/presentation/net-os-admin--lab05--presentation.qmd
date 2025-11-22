@@ -1,0 +1,204 @@
+---
+## Author
+author:
+  name: Кхари Жекка Кализая Арсе
+  email: 1032234412
+## Title
+title: презентация по лабораторной работе №5
+subtitle: Расширенная настройка HTTP-сервера Apache
+license: CC BY
+date: today
+date-format: "YYYY-MM-DD" # Example: 2025-09-06
+---
+
+# Конфигурирование HTTP-сервера для работы через протокол HTTPS
+
+## создать каталог private
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+
+:::
+::: {.column width="70%"}
+
+![](./image/03.jpg)
+
+:::
+::::::::::::::
+
+## генерировать ключ и сертификат
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+openssl req -x509 -nodes -newkey rsa:2048 -keyout www.user.net.key -out
+↪ www.user.net.crt
+mv www.user.net.crt /etc/pki/tls/certs
+
+:::
+::: {.column width="70%"}
+
+![](./image/05.jpg)
+
+:::
+::::::::::::::
+
+
+## настройка файла conf.d
+
+:::::::::::::: {.columns align=center}
+
+::: {.column width="70%"}
+
+![](./image/07.jpg)
+
+:::
+::::::::::::::
+
+## firewall
+
+:::::::::::::: {.columns align=center}
+
+::: {.column width="30%"}
+
+firewall-cmd --list-services
+firewall-cmd --get-services
+firewall-cmd --add-service=https
+firewall-cmd --add-service=https --permanent
+firewall-cmd --reload
+
+
+:::
+
+::: {.column width="70%"}
+
+![](./image/08.jpg)
+
+:::
+::::::::::::::
+
+
+
+
+# Конфигурирование HTTP-сервера для работы с PHP
+
+## установка утилита PHP
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+dnf -y install php
+
+:::
+::: {.column width="70%"}
+
+![](./image/10.jpg)
+
+:::
+::::::::::::::
+
+## изменение файла index.html
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+cp index.html index.php
+
+:::
+::: {.column width="70%"}
+
+![](./image/11.jpg)
+
+:::
+::::::::::::::
+
+
+## изменение прав доступа
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+chown -R apache:apache /var/www
+
+:::
+::: {.column width="70%"}
+
+![](./image/12.jpg)
+
+:::
+::::::::::::::
+
+
+## восстановление контекстов
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+restorecon -vR /etc
+restorecon -vR /var/www
+
+:::
+::: {.column width="70%"}
+
+![](./image/13.jpg)
+
+:::
+::::::::::::::
+
+
+## перезагрузка и результаты
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+systemctl restart httpd
+
+:::
+::: {.column width="70%"}
+
+![](./image/15.jpg)
+
+:::
+::::::::::::::
+
+
+# Внесение изменений в настройки внутреннего окружения виртуальной машины
+
+
+## 
+
+:::::::::::::: {.columns align=center}
+
+::: {.column width="70%"}
+
+![](./image/16.jpg)
+
+:::
+::::::::::::::
+
+## файл для автонастройки
+
+:::::::::::::: {.columns align=center}
+
+::: {.column width="70%"}
+
+![](./image/17.jpg)
+
+:::
+::::::::::::::
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

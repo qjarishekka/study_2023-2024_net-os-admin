@@ -1,0 +1,191 @@
+---
+## Author
+author:
+  name: Кхари Жекка Кализая Арсе
+  degrees: DSc
+  orcid: 0000-0002-0877-7063
+  email: 1032234412@pfur.ru
+  affiliation:
+    - name: Российский университет дружбы народов
+      country: Российская Федерация
+      postal-code: 117198
+      city: Москва
+      address: ул. Миклухо-Маклая, д. 6
+## Title
+title: Презентация №12
+subtitle: Синхронизация времени
+license: CC BY
+date: today
+date-format: "YYYY-MM-DD" # Example: 2025-09-06
+---
+
+#  Настройка параметров времени
+
+## время в машине
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * timedatectl
+
+:::
+::: {.column width="60%"}
+
+![](./image/01.png)
+
+:::
+::::::::::::::
+
+## системное время
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * date
+
+:::
+::: {.column width="60%"}
+
+![](./image/04.png)
+
+:::
+::::::::::::::
+
+
+## аппаратное время
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * hwclock
+
+:::
+::: {.column width="60%"}
+
+![](./image/05.png)
+
+:::
+::::::::::::::
+
+
+# Управление синхронизацией времени
+
+## установка утилиты
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * dnf -y install chrony
+
+:::
+::: {.column width="60%"}
+
+![](./image/07.png)
+
+:::
+::::::::::::::
+
+## источники времени
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * chronyc sources
+
+:::
+::: {.column width="60%"}
+
+![](./image/08.png)
+
+:::
+::::::::::::::
+
+## настройный файл
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * /etc/chrony.conf
+
+:::
+::: {.column width="60%"}
+
+![](./image/09.png)
+
+:::
+::::::::::::::
+
+## перезагрузка службы
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * systemctl restart chronyd
+
+:::
+::: {.column width="60%"}
+
+![](./image/10.png)
+
+:::
+::::::::::::::
+
+
+## Настройка межсетевой экран
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * firewall-cmd --add-service=ntp --permanent
+  * firewall-cmd --reload
+
+:::
+::: {.column width="60%"}
+
+![](./image/11.png)
+
+:::
+::::::::::::::
+
+## Настройка клиента
+
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * /etc/chrony.conf
+
+:::
+::: {.column width="60%"}
+
+![](./image/12.png)
+
+:::
+::::::::::::::
+
+## проверка
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * chronyc sources
+
+:::
+::: {.column width="60%"}
+
+![](./image/14.png)
+
+:::
+::::::::::::::
+
+## подробная информация
+:::::::::::::: {.columns align=center}
+::: {.column width="40%"}
+
+  * chronyc tracking
+
+:::
+::: {.column width="60%"}
+
+![](./image/15.png)
+
+:::
+::::::::::::::

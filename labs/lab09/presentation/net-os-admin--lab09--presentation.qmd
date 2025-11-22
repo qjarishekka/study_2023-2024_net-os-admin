@@ -1,0 +1,248 @@
+---
+## Author
+author:
+  name: Кхари Жекка Кализая Арсе
+  email: 1032234412@pfur.ru
+  affiliation:
+    - name: Российский университет дружбы народов
+      country: Российская Федерация
+      postal-code: 117198
+      city: Москва
+      address: ул. Миклухо-Маклая, д. 6
+## Title
+title: презентация №9
+subtitle: Настройка POP3/IMAP сервера
+license: CC BY
+date: today
+date-format: "YYYY-MM-DD" # Example: 2025-09-06
+---
+
+# Последовательность выполнения работы
+
+# Установка Dovecot
+
+## Установка Dovecot
+
+:::::::::::::: {.columns align=center}
+::: {.column width="50%"}
+
+- sudo -i
+- dnf -y install dovecot telnet
+
+:::
+::: {.column width="50%"}
+
+![](./image/01.jpg)
+
+:::
+::::::::::::::
+
+# Настройка dovecot
+
+##  Настройка dovecot
+
+:::::::::::::: {.columns align=center}
+::: {.column width="100%"}
+
+- protocols = imap pop3
+- auth_mechanisms = plain
+- passdb {
+    driver = pam
+    }
+    userdb {
+    driver = passwd
+    }
+
+- mail_location = maildir:~/Maildir
+
+:::
+::::::::::::::
+
+## /etc/dovecot/dovecot.conf
+
+:::::::::::::: {.columns align=center}
+
+::: {.column width="100%"}
+
+![](./image/02.jpg)
+
+:::
+::::::::::::::
+
+## /etc/dovecot/conf.d/10-auth.conf
+
+:::::::::::::: {.columns align=center}
+
+::: {.column width="100%"}
+
+![](./image/03.jpg)
+
+:::
+::::::::::::::
+
+## /etc/dovecot/conf.d/auth-system.conf.ext
+
+:::::::::::::: {.columns align=center}
+
+::: {.column width="100%"}
+
+![](./image/04.jpg)
+
+:::
+::::::::::::::
+
+## /etc/dovecot/conf.d/10-mail.conf
+
+:::::::::::::: {.columns align=center}
+
+::: {.column width="100%"}
+
+![](./image/05.jpg)
+
+:::
+::::::::::::::
+
+
+## настройка firewall
+
+:::::::::::::: {.columns align=center}
+::: {.column width="50%"}
+
+- firewall-cmd --get-services
+- firewall-cmd --add-service=pop3 --permanent
+- firewall-cmd --add-service=pop3s --permanent
+- firewall-cmd --add-service=imap --permanent
+- firewall-cmd --add-service=imaps --permanent
+- firewall-cmd --reload
+- firewall-cmd --list-services
+- restorecon -vR /etc
+
+:::
+::: {.column width="50%"}
+
+![](./image/08.jpg)
+
+:::
+::::::::::::::
+
+## перезагрузка Ppostfix
+
+:::::::::::::: {.columns align=center}
+::: {.column width="50%"}
+
+- systemctl restart postfix
+- systemctl enable dovecot
+- systemctl start dovecot
+
+:::
+::: {.column width="50%"}
+
+![](./image/09.jpg)
+
+:::
+::::::::::::::
+
+
+# Проверка работы Dovecot
+
+## лог
+
+:::::::::::::: {.columns align=center}
+::: {.column width="50%"}
+
+- tail -f /var/log/maillog
+- MAIL=~/Maildir mail
+- doveadm mailbox list -u user
+
+
+:::
+::: {.column width="50%"}
+
+![](./image/10.jpg)
+
+:::
+::::::::::::::
+
+
+
+# установка evolution
+
+## установка evolution
+
+:::::::::::::: {.columns align=center}
+::: {.column width="50%"}
+
+- dnf -y install evolution
+
+:::
+::: {.column width="50%"}
+
+![](./image/14.jpg)
+
+:::
+::::::::::::::
+
+## настройка evolution
+
+:::::::::::::: {.columns align=center}
+::: {.column width="50%"}
+
+
+:::
+::: {.column width="50%"}
+
+![](./image/15.jpg)
+
+:::
+::::::::::::::
+
+
+## проверка работы
+
+:::::::::::::: {.columns align=center}
+::: {.column width="50%"}
+
+
+:::
+::: {.column width="50%"}
+
+![](./image/16.jpg)
+
+:::
+::::::::::::::
+
+## проверка работы telnet
+
+:::::::::::::: {.columns align=center}
+::: {.column width="50%"}
+
+- telnet mail.qscalizaya.net 110
+- user qscalizaya
+- pass 123456
+
+:::
+::: {.column width="50%"}
+
+![](./image/17.jpg)
+
+:::
+::::::::::::::
+
+
+## проверка работы telnet
+
+:::::::::::::: {.columns align=center}
+::: {.column width="50%"}
+
+- list
+- retr1
+- dele 2
+- quit
+
+:::
+::: {.column width="50%"}
+
+![](./image/18.jpg)
+
+:::
+::::::::::::::

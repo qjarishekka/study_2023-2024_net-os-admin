@@ -1,0 +1,138 @@
+---
+## Author
+author:
+  name: Кхари Жекка Кализая Арсе
+  email: 1032234412@pfur.ru
+
+## Title
+title: "отчёт по лабораторной работе №9"
+subtitle: "Настройка POP3/IMAP сервера"
+license: "CC BY"
+---
+
+# Цель работы
+
+Приобретение практических навыков по установке и простейшему конфигурированию POP3/IMAP-сервера.
+
+# Задание
+
+1. Установите на виртуальной машине server Dovecot и Telnet для дальнейшей проверки корректности работы почтового сервера. 
+2. Настройте Dovecot. 
+3. Установите на виртуальной машине client программу для чтения почты Evolution
+и настройте её для манипуляций с почтой вашего пользователя. Проверьте корректность работы почтового сервера как с виртуальной машины server, так
+и с виртуальной машины client. 
+4. Измените скрипт для Vagrant, фиксирующий действия по установке и настройке
+Postfix и Dovecote во внутреннем окружении виртуальной машины server, создайте
+скрипт для Vagrant, фиксирующий действия по установке Evolution во внутреннем окружении виртуальной машины client. Соответствующим образом внесите
+изменения в Vagrantfile. 
+
+# Выполнение лабораторной работы
+
+Сначала запустил ВМ сервер и установил Dovecot, Telnet.
+
+    dnf -y install dovecot telnet
+
+![Установка Dovecot и Telnet](image/01.jpg){#fig-001 width=70%}
+
+Потом настроил Dovecot изменяя файлы dovecot.conf , 10-auth.conf auth-system.conf.ext
+
+    protocols = imap pop3
+    auth_mechanisms = plain
+    passdb {
+    driver = pam
+    }
+    userdb {
+    driver = passwd
+    }
+    mail_location = maildir:~/Maildir
+
+![Настройка Dovecot - часть 1](image/02.jpg){#fig-002 width=70%}
+
+![Настройка Dovecot - часть 2](image/03.jpg){#fig-003 width=70%}
+
+![Настройка Dovecot - часть 3](image/04.jpg){#fig-004 width=70%}
+
+![Настройка Dovecot - часть 4](image/05.jpg){#fig-005 width=70%}
+
+Потом я настроил Postfix.
+
+    postconf -e 'home_mailbox = Maildir/'
+
+![Настройка Postfix](image/06.jpg){#fig-006 width=70%}
+
+Дальше я настроил firewall, чтобы разрешил работать службам протоколов POP3, IMAP.
+
+    firewall-cmd --get-services
+    firewall-cmd --add-service=pop3 --permanent
+    firewall-cmd --add-service=pop3s --permanent
+    firewall-cmd --add-service=imap --permanent
+    firewall-cmd --add-service=imaps --permanent
+    firewall-cmd --reload
+    firewall-cmd --list-services
+
+![Настройка firewall](image/07.jpg){#fig-007 width=70%}
+
+Потом я восстановил контекст SELinux.
+
+    restorecon -vR /etc
+
+![Восстановление контекста SELinux](image/08.jpg){#fig-008 width=70%}
+
+Затем я перезагрузил службы.
+
+    systemctl restart postfix
+    systemctl enable dovecot
+    systemctl start dovecot
+
+![Перезапуск служб Postfix и Dovecot](image/09.jpg){#fig-009 width=70%}
+
+Потом я запустил мониторинг, чтобы смотреть работу службы.
+
+    tail -f /var/log/maillog
+
+![Мониторинг журнала почты](image/10.jpg){#fig-010 width=70%}
+
+Дальше на терминале сервера я выполнил команду mail.
+
+    MAIL=~/Maildir mail
+
+![Проверка почты на сервере](image/11.jpg){#fig-011 width=70%}
+
+А потом я просмотрел список почтовых ящиков.
+
+    doveadm mailbox list -u user
+
+![Список почтовых ящиков](image/12.jpg){#fig-012 width=70%}
+
+Потом в ВМ клиент я установил Evolution.
+
+    dnf -y install evolution
+
+![Установка Evolution](image/14.jpg){#fig-013 width=70%}
+
+Потом я начал настройку Evolution.
+
+![Настройка Evolution - часть 1](image/15.jpg){#fig-014 width=70%}
+
+![Отправка письма через Evolution](image/16.jpg){#fig-016 width=70%}
+
+Потом я подключился к серверу, используя Telnet.
+
+    telnet mail.user.net 110
+    user qscalizaya
+    pass 123456
+
+![Подключение к серверу через Telnet](image/17.jpg){#fig-017 width=70%}
+
+И в конце я выполнил несколько команд, чтобы проверить работу служб.
+
+![Проверка работы почтовых служб](image/18.jpg){#fig-018 width=70%}
+
+# Выводы
+
+В ходе работы были приобретены навыки установки и настройки POP3/IMAP сервера с использованием Dovecot и Postfix, а также взаимодействия с клиентом Evolution.
+
+# Список литературы{.unnumbered}
+
+::: {#refs}
+:::
