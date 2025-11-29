@@ -1,10 +1,10 @@
 ---
 ## Author
 author:
-  name: Дмитрий Сергеевич Кулябов
+  name: Кхари Жекка Кализая Арсе
   degrees: DSc
   orcid: 0000-0002-0877-7063
-  email: kulyabov-ds@rudn.ru
+  email: 1032234412@pfur.ru
   affiliation:
     - name: Российский университет дружбы народов
       country: Российская Федерация
@@ -13,53 +13,280 @@ author:
       address: ул. Миклухо-Маклая, д. 6
 
 ## Title
-title: "Шаблон отчёта по лабораторной работе"
-subtitle: "Простейший вариант"
+title: "Лабораторная работа № 13"
+subtitle: "Настройка NFS"
 license: "CC BY"
 ---
 
 # Цель работы
 
-Здесь приводится формулировка цели лабораторной работы.
-Формулировки цели для каждой лабораторной работы приведены в методических указаниях.
-
-Цель данного шаблона --- максимально упростить подготовку отчётов по лабораторным работам.
-Модифицируя данный шаблон, студенты смогут без труда подготовить отчёт по лабораторным работам, а также познакомиться с основными возможностями разметки Markdown.
+Приобретение навыков настройки сервера NFS для удалённого доступа к ресурсам.
 
 # Задание
 
-Здесь приводится описание задания в соответствии с рекомендациями методического пособия и выданным вариантом.
+1. Установите и настройте сервер NFSv4 (см. раздел 13.4.1).
+2. Подмонтируйте удалённый ресурс на клиенте (см. раздел 13.4.2).
+3. Подключите каталог с контентом веб-сервера к дереву NFS (см. раздел 13.4.3).
+4. Подключите каталог для удалённой работы вашего пользователя к дереву NFS (см.
+раздел 13.4.4).
+5. Напишите скрипты для Vagrant, фиксирующие действия по установке и настройке сервера NFSv4 во внутреннем окружении виртуальных машин server и client.
+Соответствующим образом внесите изменения в Vagrantfile (см. раздел 13.4.5).
 
-# Теоретическое введение
-
-Здесь описываются теоретические аспекты, связанные с выполнением работы.
-
-Например, в [табл. @tbl-std-dir] приведено краткое описание стандартных каталогов Unix.
-
-| Имя каталога | Описание каталога                                                                                                          |
-|--------------|----------------------------------------------------------------------------------------------------------------------------|
-| `/`          | Корневая директория, содержащая всю файловую                                                                               |
-| `/bin `      | Основные системные утилиты, необходимые как в однопользовательском режиме, так и при обычной работе всем пользователям     |
-| `/etc`       | Общесистемные конфигурационные файлы и файлы конфигурации установленных программ                                           |
-| `/home`      | Содержит домашние директории пользователей, которые, в свою очередь, содержат персональные настройки и данные пользователя |
-| `/media`     | Точки монтирования для сменных носителей                                                                                   |
-| `/root`      | Домашняя директория пользователя  `root`                                                                                   |
-| `/tmp`       | Временные файлы                                                                                                            |
-| `/usr`       | Вторичная иерархия для данных пользователя                                                                                 |
-
-: Описание некоторых каталогов файловой системы GNU Linux {#tbl-std-dir}
-
-Более подробно про Unix см. в [@tanenbaum_book_modern-os_ru; @robbins_book_bash_en; @zarrelli_book_mastering-bash_en; @newham_book_learning-bash_en].
 
 # Выполнение лабораторной работы
 
-Описываются проведённые действия, в качестве иллюстрации даётся ссылка на иллюстрацию ([рис. @fig-001]).
+## Настройка сервера NFSv4
 
-![V Сольвеевский конгресс (1927) «Электроны и фотоны»](image/solvay.jpg){#fig-001 width=70%}
+Сначала я установил утлиту nfs-utils чтобы работать с ним
+
+    dnf -y install nfs-utils
+
+![name](image/01.jpg){#fig-001 width=70%}
+
+Потом я создал каталог nfs
+
+    mkdir -p /srv/nfs
+
+![name](image/02.jpg){#fig-002 width=70%} 
+
+Потом я открыл файл /etc/exports и добавил следующую строку 
+
+    vim /etc/exports
+    /srv/nfs *(ro)
+
+![name](image/03.jpg){#fig-003 width=70%}
+
+Дальше я востановил контекст 
+
+    semanage fcontext -a -t nfs_t "/srv/nfs(/.*)"
+    restorecon -vR /srv/nfs
+
+![name](image/05.jpg){#fig-005 width=70%}
+
+
+Потом я запустил NFS
+
+    systemctl start nfs-server.service
+    systemctl enable nfs-server.service
+
+![name](image/06.jpg){#fig-006 width=70%}
+
+Дальше я настроил farewall чтобы разрешать подключение
+
+    firewall-cmd --add-service=nfs
+    firewall-cmd --add-service=nfs --permanent
+    firewall-cmd --reload
+
+![name](image/07.jpg){#fig-007 width=70%}
+
+Затем в клиенте я установил nfs 
+
+    dnf -y install nfs-utils
+
+![name](image/08.jpg){#fig-008 width=70%}
+
+Потом я попробовал отмонтировать директорию через клиент
+
+    showmount -e server.qscalizaya.net
+
+![name](image/09.jpg){#fig-009 width=70%}
+
+Потом после того как я выключил farewall в сервере я попробовал еще раз
+
+![name](image/10.jpg){#fig-010 width=70%}
+
+Потом я еще раз выключил farewall и добавил следующие утилты на список
+
+    firewall-cmd --get-services
+    firewall-cmd --add-service=mountd --add-service=rpc-bind
+    firewall-cmd --add-service=mountd --add-service=rpc-bind --permanent
+    firewall-cmd --reload
+
+и еще раз попробовал без выключения firewall
+
+![name](image/10.jpg){#fig-010 width=70%}
+
+
+##  Монтирование NFS на клиенте
+
+Сначала я создал каталог в клиенте чтобы монтировать удалённый ресур
+
+    mkdir -p /mnt/nfs
+    mount server.qscalizaya.net:/srv/nfs /mnt/nfs
+  
+![name](image/12.jpg){#fig-012 width=70%}
+
+Потом я подвердил что общий ресурс NFS подключени правилно
+
+    mount
+
+![name](image/13.jpg){#fig-013 width=70%}
+
+
+Дальше я добавил строку в конце файла /etc/fstab 
+
+    nano /etc/fstab
+    server.qscalizaya.net:/srv/nfs /mnt/nfs nfs _netdev 0 0
+
+![name](image/14.jpg){#fig-014 width=70%}
+
+Потом я смотрел статус автоматического монтирования
+
+    systemctl status remote-fs.target
+
+![name](image/15.jpg){#fig-015 width=70%}
+
+Потом я перезагрузил клиент и подвердил что удалённый ресурс подключается автоматически
+
+    mount | grep /mnt/nfs
+  
+![name](image/16.jpg){#fig-016 width=70%}
+
+
+## Подключение каталогов к дереву NFS
+
+Сначала я создал каталог /srv/nfs/www и монтировал в него каталог /var/www
+
+    mkdir -p /srv/nfs/www
+    mount -o bind /var/www/ /srv/nfs/www/
+
+![name](image/17.jpg){#fig-017 width=70%}
+
+Потом в сервере смотрел что в него 
+
+    ls 
+
+![name](image/18.jpg){#fig-018 width=70%}
+
+
+Дальше в клиенте я тоже смотрел что в него
+
+    ls /mnt/nfs
+
+![name](image/19.jpg){#fig-019 width=70%}
+
+
+Дальше я изменил файл /etc/exports чтобы экспортировать каталог 
+
+    /srv/nfs/www 192.168.0.0/16(rw)
+
+![name](image/20.jpg){#fig-020 width=70%}
+
+
+Дальше я экспортировал все каталоги
+
+    exportfs -r
+
+![name](image/21.jpg){#fig-021 width=70%}
+
+Затем на клиенте я смотрел еще раз содержание
+
+    ls /mnt/nfs/
+
+![name](image/22.jpg){#fig-022 width=70%}
+
+
+## Подключение каталогов для работы пользователей
+
+Сначала в сервере я создал каталог под пользователем qscalizaya 
+
+    mkdir -p -m 700 ~/common
+    cd ~/common
+    touch qscalizaya@server.txt
+
+![name](image/23.jpg){#fig-023 width=70%}
+
+Потом я создал общий каталог для работы пользователя qscalizaya по сети
+
+    mkdir -p /srv/nfs/home/qscalizaya
+
+![name](image/24.jpg){#fig-024 width=70%}
+
+Дальше я подмонтировал каталог common в NFS 
+
+    mount -o bind /home/qscalizaya/common /srv/nfs/home/user
+
+![name](image/26.jpg){#fig-026 width=70%}
+
+Также я смотрел права доступа такого каталога
+
+
+Потом я подключил каталог в файле /etc/exports
+
+    nano /etc/exports
+    /srv/nfs/home/qscalizaya 192.168.0.0/16(rw)
+  
+![name](image/27.jpg){#fig-027 width=70%}
+
+и также внес изменения в файл /etc/fstab
+
+    nano /etc/fstab
+    /home/qscalizaya/common /srv/nfs/home/qscalizaya none bind 0 0
+
+![name](image/28.jpg){#fig-028 width=70%}
+
+Потом повторно экспортировал каталоги
+
+    sudo exportfs -r 
+
+![name](image/29.jpg){#fig-029 width=70%}
+
+на клиенете я проверил каталог /mnt/nfs и создал файл в него
+
+    cd /mnt/nfs/home/qscalizaya/
+    echo hello this is qjari > qscalizaya@client.txt
+
+![name](image/30.jpg){#fig-030 width=70%}
+
+
+и проверил в сервере успешно ли создал файл
+
+![name](image/31.jpg){#fig-031 width=70%}
+
+
+## Внесение изменений в настройки внутреннего окружения виртуальных машин
+
+сначала я создал необходимые каталоги и файлы для скриптов
+
+    cd /vagrant/provision/server
+    mkdir -p /vagrant/provision/server/nfs/etc
+    cp -R /etc/exports /vagrant/provision/server/nfs/etc/
+    cd /vagrant/provision/server
+    touch nfs.sh
+    chmod +x nfs.sh
+
+![name](image/32.jpg){#fig-032 width=70%}
+
+![name](image/33.jpg){#fig-033 width=70%}
+
+и тоже самое на клиенет
+
+    cd /vagrant/provision/client
+    cd /vagrant/provision/client
+    touch nfs.sh
+    chmod +x nfs.sh
+
+![name](image/34.jpg){#fig-034 width=70%}   
+![name](image/35.jpg){#fig-035 width=70%}
+
+и добавил инструкции на файл Vagrantfile
+
+![name](image/36.jpg){#fig-036 width=70%}
+
+## контрольные вопросы
+
+1. Как называется файл конфигурации, содержащий общие ресурсы NFS? 
+  - /etc/exports
+
+2. Какие порты должны быть открыты в брандмауэре, чтобы обеспечить полный доступ к серверу NFS? 
+  - 2049/TCP, y también 111 (RPCbind)
+3. Какую опцию следует использовать в /etc/fstab, чтобы убедиться, что общие ресурсы NFS могут быть установлены автоматически при перезагрузке?
+  - опция _netdev в каталоге /etc/fstab
+
 
 # Выводы
 
-Здесь кратко описываются итоги проделанной работы.
+В этом лабораторном задании я смог увидеть, как можно монтировать каталоги на сервере так, чтобы они были безопасно доступны с клиента с помощью NFS.
 
 # Список литературы{.unnumbered}
 
