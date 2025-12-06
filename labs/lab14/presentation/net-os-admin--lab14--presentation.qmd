@@ -1,10 +1,8 @@
 ---
 ## Author
 author:
-  name: Дмитрий Сергеевич Кулябов
-  degrees: DSc
-  orcid: 0000-0002-0877-7063
-  email: kulyabov-ds@rudn.ru
+  name: Кхари Жекка Кализая Арсе
+  email: 1032234412
   affiliation:
     - name: Российский университет дружбы народов
       country: Российская Федерация
@@ -12,189 +10,655 @@ author:
       city: Москва
       address: ул. Миклухо-Маклая, д. 6
 ## Title
-title: Структура научной презентации
-subtitle: Простейший вариант
+title: презентация Лабораторная работа № 14
+subtitle: Настройка файловых служб Samba
 license: CC BY
 date: today
 date-format: "YYYY-MM-DD" # Example: 2025-09-06
 ---
 
-# Информация
 
-## Докладчик
+# наш цель
+
+## наш цель
 
 :::::::::::::: {.columns align=center}
-::: {.column width="70%"}
+::: {.column width="100%"}
 
-  * Кулябов Дмитрий Сергеевич
-  * д.ф.-м.н., профессор
-  * профессор кафедры теории вероятностей и кибербезопасности
-  * Российский университет дружбы народов им. П. Лумумбы
-  * [kulyabov-ds@rudn.ru](mailto:kulyabov-ds@rudn.ru)
-  * <https://yamadharma.github.io/ru/>
+  * установить samba
+  * настройть samba
+  * разделить каталог с клиентом с помощью samba
+
 
 :::
+
+::::::::::::::
+
+# Последовательность выполнения работы
+
+# Настройка сервера Samba
+
+## шаги
+
+:::::::::::::: {.columns align=center}
+::: {.column width="100%"}
+
+  * установка утилиты
+  * создание группы и добавление
+  * создание каталога sambashare
+  * настройка файла smb.conf
+  * запуск утилиты
+  * проверка
+
+
+:::
+
+::::::::::::::
+
+## шаги
+
+:::::::::::::: {.columns align=center}
+::: {.column width="100%"}
+
+  * межсетевой экран
+  * права доступа
+  * контекст безопастности
+  * экспортация
+  * база пользователей samba
+
+:::
+
+::::::::::::::
+
+
+
+## установка
+
+:::::::::::::: {.columns align=center}
 ::: {.column width="30%"}
 
-![](./image/kulyabov.jpg)
+  * dnf -y install samba samba-client cifs-utils
+
+:::
+::: {.column width="70%"}
+
+![](./image/01.jpg)
 
 :::
 ::::::::::::::
 
-# Вводная часть
+## создание группы sambagroup
 
-## Актуальность
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
 
-- Важно донести результаты своих исследований до окружающих
-- Научная презентация --- рабочий инструмент исследователя
-- Необходимо создавать презентацию быстро
-- Желательна минимизация усилий для создания презентации
+  * groupadd -g 1010 sambagroup
+  * usermod -aG sambagroup user
 
-## Объект и предмет исследования
+:::
+::: {.column width="70%"}
 
-- Презентация как текст
-- Программное обеспечение для создания презентаций
-- Входные и выходные форматы презентаций
+![](./image/03.jpg)
 
-## Цели и задачи
+:::
+::::::::::::::
 
-- Создать шаблон презентации в Markdown
-- Описать алгоритм создания выходных форматов презентаций
+## создание каталога sambashare
 
-## Материалы и методы
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
 
-- Процессор `pandoc` для входного формата Markdown
-- Результирующие форматы
-	- `pdf`
-	- `html`
-- Автоматизация процесса создания: `Makefile`
+  * mkdir -p /srv/sambashare
 
-# Создание презентации
+:::
+::: {.column width="70%"}
 
-## Процессор `pandoc`
+![](./image/04.jpg)
 
-- Pandoc: преобразователь текстовых файлов
-- Сайт: <https://pandoc.org/>
-- Репозиторий: <https://github.com/jgm/pandoc>
+:::
+::::::::::::::
 
-## Формат `pdf`
+## создание каталога sambashare
 
-- Использование LaTeX
-- Пакет для презентации: [beamer](https://ctan.org/pkg/beamer)
-- Тема оформления: `metropolis`
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
 
-## Код для формата `pdf`
+  * mkdir -p /srv/sambashare
 
-```yaml
-slide_level: 2
-aspectratio: 169
-section-titles: true
-theme: metropolis
-```
+:::
+::: {.column width="70%"}
 
-## Формат `html`
+![](./image/04.jpg)
 
-- Используется фреймворк [reveal.js](https://revealjs.com/)
-- Используется [тема](https://revealjs.com/themes/) `beige`
+:::
+::::::::::::::
 
-## Код для формата `html`
+## настройка файла /etc/samba/smb.conf
 
-- Тема задаётся в файле `Makefile`
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
 
-```make
-REVEALJS_THEME = beige
-```
-# Результаты
+  * nano /etc/samba/smb.conf
 
-## Получающиеся форматы
+:::
+::: {.column width="70%"}
 
-- Полученный `pdf`-файл можно демонстрировать в любой программе просмотра `pdf`
-- Полученный `html`-файл содержит в себе все ресурсы: изображения, css, скрипты
+![](./image/05.jpg)
 
-# Элементы презентации
+:::
+::::::::::::::
 
-## Актуальность
+## проверка настройки
 
-- Даёт понять, о чём пойдёт речь
-- Следует широко и кратко описать проблему
-- Мотивировать свое исследование
-- Сформулировать цели и задачи
-- Возможна формулировка ожидаемых результатов
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
 
-## Цели и задачи
+  * testparm
 
-- Не формулируйте более 1--2 целей исследования
+:::
+::: {.column width="70%"}
 
-## Материалы и методы
+![](./image/06.jpg)
 
-- Представляйте данные качественно
-- Количественно, только если крайне необходимо
-- Излишние детали не нужны
+:::
+::::::::::::::
 
-## Содержание исследования
+## запуск утилиты
 
-- Предлагаемое решение задач исследования с обоснованием
-- Основные этапы работы
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
 
-## Результаты
+  * systemctl start smb
+  * systemctl enable smb
+  * systemctl status smb
 
-- Не нужны все результаты
-- Необходимы логические связки между слайдами
-- Необходимо показать понимание материала
+:::
+::: {.column width="70%"}
+
+![](./image/07.jpg)
+
+:::
+::::::::::::::
 
 
-## Итоговый слайд
+## проверка наличия доступа
 
-- Запоминается последняя фраза. © Штирлиц
-- Главное сообщение, которое вы хотите донести до слушателей
-- Избегайте использовать последний слайд вида *Спасибо за внимание*
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
 
-# Рекомендую
+  * smbclient -L //server
 
-## Принцип 10/20/30
+:::
+::: {.column width="70%"}
 
-  - 10 слайдов
-  - 20 минут на доклад
-  - 30 кегль шрифта
+![](./image/08.jpg)
 
-## Связь слайдов
+:::
+::::::::::::::
 
-::: incremental
+## файл конфигурации firewall
 
-- Один слайд --- одна мысль
-- Нельзя ссылаться на объекты, находящиеся на предыдущих слайдах (например, на формулы)
-- Каждый слайд должен иметь заголовок
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+  * less /usr/lib/firewalld/services/samba.xml
+
+:::
+::: {.column width="70%"}
+
+![](./image/09.jpg)
+
+:::
+::::::::::::::
+
+
+## настройка firewall
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+  * firewall-cmd --add-service=samba
+  * firewall-cmd --add-service=samba --permanent
+  * firewall-cmd --reload
+
+:::
+::: {.column width="70%"}
+
+![](./image/10.jpg)
+
+:::
+::::::::::::::
+
+
+## настройка права доступа
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+  * chgrp sambagroup /srv/sambashare
+  * chmod g=rwx /srv/sambashare
+
+
+:::
+::: {.column width="70%"}
+
+![](./image/11.jpg)
+
+:::
+::::::::::::::
+
+## контекст безопастности
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+* semanage fcontext -a -t samba_share_t "/srv/sambashare(/.*)?"
+* restorecon -vR /srv/sambashare
+
+:::
+::: {.column width="70%"}
+
+![](./image/13.jpg)
+
+:::
+::::::::::::::
+
+
+## проверка контекста
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+* cd /srv
+* ls -Z
+
+:::
+::: {.column width="70%"}
+
+![](./image/14.jpg)
+
+:::
+::::::::::::::
+
+## экпортация
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+* setsebool samba_export_all_rw 1
+* setsebool samba_export_all_rw 1 -P
+
+:::
+::: {.column width="70%"}
+
+![](./image/15.jpg)
+
+:::
+::::::::::::::
+
+## id
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+* id
+
+:::
+::: {.column width="70%"}
+
+![](./image/16.jpg)
+
+:::
+::::::::::::::
+
+
+## создание файла
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+* cd /srv/sambashare
+* touch user@server.txt
+
+:::
+::: {.column width="70%"}
+
+![](./image/17.jpg)
+
+:::
+::::::::::::::
+
+## добавление пользователя в базу пользователей samba
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+* smbpasswd -L -a qscalizaya
+
+:::
+::: {.column width="70%"}
+
+![](./image/18.jpg)
+
+:::
+::::::::::::::
+
+
+
+# Монтирование файловой системы Samba на клиенте
+
+
+## шаги
+
+:::::::::::::: {.columns align=center}
+::: {.column width="100%"}
+
+* установка
+* конфигурация
+* firewall
+* создание группы
+* настройка файла smb.conf
+* проверка работы
 
 :::
 
-## Количество сущностей
+::::::::::::::
 
-::: incremental
+## шаги
 
-- Человек может одновременно помнить $7 \pm 2$ элемента
-- При размещении информации на слайде старайтесь чтобы в сумме слайд содержал не более 5 элементов
-- Можно группировать элементы так, чтобы визуально было не более 5 групп
+:::::::::::::: {.columns align=center}
+::: {.column width="100%"}
 
-:::
 
-## Общие рекомендации
-
-::: incremental
-
-- На слайд выносится та информация, которая без зрительной опоры воспринимается хуже
-- Слайды должны дополнять или обобщать содержание выступления или его частей, а не дублировать его
-- Информация на слайдах должна быть изложена кратко, чётко и хорошо структурирована
-- Слайд не должен быть перегружен графическими изображениями и текстом
-- Не злоупотребляйте анимацией и переходами
+* проверка под учетной записей
+* создание каталога для разделения
+* монтировка каталога с сервера
+* проверка с созданным файлом
+* отмонтировка
+* автоматизация монтирования
+* проверка при перезагрузки
 
 :::
+::::::::::::::
 
-## Представление данных
+## установка утилит samba-client cifs-utils
 
-::: incremental
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
 
-- Лучше представить в виде схемы
-- Менее оптимально представить в виде рисунка, графика, таблицы
-- Текст используется, если все предыдущие способы отображения информации не подошли
+* dnf -y install samba-client cifs-utils
 
 :::
+::: {.column width="70%"}
+
+![](./image/19.jpg)
+
+:::
+::::::::::::::
+
+## файл настроки firwall
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+* less /usr/lib/firewalld/services/samba-client.xml
+
+:::
+::: {.column width="70%"}
+
+![](./image/20.jpg)
+
+:::
+::::::::::::::
+
+## файл настроки firwall
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+* less /usr/lib/firewalld/services/samba-client.xml
+
+:::
+::: {.column width="70%"}
+
+![](./image/20.jpg)
+
+:::
+::::::::::::::
+
+## настройка firewall
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+* firewall-cmd --add-service=samba-client
+* firewall-cmd --add-service=samba-client --permanent
+* firewall-cmd --reload
+
+:::
+::: {.column width="70%"}
+
+![](./image/21.jpg)
+
+:::
+::::::::::::::
+
+
+## создание группы sambagroup
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+* groupadd -g 1010 sambagroup
+* usermod -aG sambagroup user
+
+:::
+::: {.column width="70%"}
+
+![](./image/22.jpg)
+
+:::
+::::::::::::::
+
+## настройка файла smb.conf
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+* nano /etc/samba/smb.conf
+* workgroup = qscalizaya-NET
+
+:::
+::: {.column width="70%"}
+
+![](./image/23.jpg)
+
+:::
+::::::::::::::
+
+## проверка работы
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+* smbclient -L //server -U
+* smbclinet -L //server -u qscalizaya
+
+:::
+::: {.column width="70%"}
+
+![](./image/25.jpg)
+
+:::
+::::::::::::::
+
+
+## создание каталога для монтирования и монтирование
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+* mkdir /mnt/samba
+* mount -o username=qscalizaya,user,rw,uid=qscalizaya,gid=sambagroup //server/sambashare /mnt/samba
+
+:::
+::: {.column width="70%"}
+
+![](./image/27.jpg)
+
+:::
+::::::::::::::
+
+## проверка правильного создания
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+* cd /mnt/samba
+* touch qscalizaya@client.txt
+
+:::
+::: {.column width="70%"}
+
+![](./image/28.jpg)
+
+:::
+::::::::::::::
+
+## отмонтирование
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+* umount /mnt/samba
+
+:::
+::: {.column width="70%"}
+
+![](./image/29.jpg)
+
+:::
+::::::::::::::
+
+## настройка автомонтирования
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+* touch /etc/samba/smbusers
+* chmod 600 /etc/samba/smbusers
+
+
+:::
+::: {.column width="70%"}
+
+![](./image/31.jpg)
+
+:::
+::::::::::::::
+
+## настройка в файле /etc/fstab
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+* nano /etc/ftab
+* //server/sambashare /mnt/samba cifs user,rw,uid=qscalizaya,gid=sambagroup,credentials=/etc/samba/smbusers,_netdev 0 0
+
+
+:::
+::: {.column width="70%"}
+
+![](./image/32.jpg)
+
+:::
+::::::::::::::
+
+
+
+## проверка
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+* mount -a
+* reboot
+
+:::
+::: {.column width="70%"}
+
+![](./image/34.jpg)
+
+:::
+::::::::::::::
+
+
+#  Внесение изменений в настройки внутреннего окружения виртуальных машин
+
+## каталоги и файлы для скрипта
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+* cd /vagrant/provision/server
+* mkdir -p /vagrant/provision/server/smb/etc/samba
+* cp -R /etc/samba/smb.conf /vagrant/provision/server/smb/etc/samba/
+* cd /vagrant/provision/server
+* touch smb.sh
+* chmod +x smb.sh
+
+
+:::
+::: {.column width="70%"}
+
+![](./image/35.jpg)
+
+:::
+::::::::::::::
+
+
+
+## скрипт
+
+:::::::::::::: {.columns align=center}
+
+::: {.column width="100%"}
+
+![](./image/36.jpg)
+
+:::
+::::::::::::::
+
+## каталоги и файлы для скрипта в клиенте
+
+:::::::::::::: {.columns align=center}
+::: {.column width="30%"}
+
+* cd /vagrant/provision/client
+* mkdir -p /vagrant/provision/client/smb/etc/samba
+* cp -R /etc/samba/smb.conf /vagrant/provision/client/smb/etc/samba/
+* cp -R /etc/samba/smbusers /vagrant/provision/client/smb/etc/samba/
+* cd /vagrant/provision/client
+* touch smb.sh
+* chmod +x smb.sh
+
+:::
+::: {.column width="70%"}
+
+![](./image/37.jpg)
+
+:::
+::::::::::::::
+
+## скрипт в клиенте
+
+:::::::::::::: {.columns align=center}
+
+::: {.column width="100%"}
+
+![](./image/38.jpg)
+
+:::
+::::::::::::::
+
+# спасибо за внимание
